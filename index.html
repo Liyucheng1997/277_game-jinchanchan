@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>金铲铲小战棋</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+  <div id="topbar">
+    <div>
+      <div id="roundLabel">回合 1-1</div>
+      <div id="stageDesc">野怪回合</div>
+    </div>
+    <div id="hpWrap">
+      <div id="hpFill"></div>
+      <div id="hpText">❤️ 100</div>
+    </div>
+    <div class="goldBox">💰<span id="goldText">0</span></div>
+    <div id="streakText"></div>
+    <div id="bestText"></div>
+    <button class="iconBtn" id="btnSpeed">⏩ 1x</button>
+    <button class="iconBtn" id="btnMute">🔊</button>
+    <button class="iconBtn" id="btnRestart">🔄 重开</button>
+  </div>
+
+  <div id="main">
+    <aside id="synergyPanel">
+      <h3>羁绊（棋盘上生效）</h3>
+      <div id="synergyList"></div>
+      <div id="helpBox">
+        <b>玩法</b><br>
+        · 点击商店卡牌购买棋子<br>
+        · 拖到棋盘下半区上阵<br>
+        · 集齐 3 个相同棋子自动升星<br>
+        · 装备拖到棋子身上<br>
+        · 上方红色虚影 = 下回合敌人<br><br>
+        <b>快捷键</b><br>
+        D 刷新商店　F 买经验<br>
+        空格 开始战斗<br><br>
+        <b>经济</b><br>
+        每回合 +5💰，每 10💰 存款 +1 利息（上限5），连胜/连败有奖励
+      </div>
+    </aside>
+
+    <div id="centerCol">
+      <div id="boardWrap">
+        <div id="board"></div>
+        <div id="previewTag">⚔️ 敌方阵容预览</div>
+        <div id="combatTimer"></div>
+      </div>
+
+      <div id="bottomPanel">
+        <div id="benchRow">
+          <div id="bench"></div>
+          <div id="sellZone">🗑️ 出售</div>
+        </div>
+        <div id="itemBar"></div>
+        <div id="shopPanel">
+          <div id="levelBox">
+            <div id="levelText">Lv.2</div>
+            <div id="boardCount">场上 0/2</div>
+            <div id="xpBarWrap"><div id="xpFill"></div></div>
+            <div id="xpText">0/6</div>
+            <div id="oddsText"></div>
+          </div>
+          <div id="shopBtns">
+            <button class="btn" id="btnRefresh">🎲 刷新 2💰 (D)</button>
+            <button class="btn" id="btnXp">📖 经验 4💰 (F)</button>
+            <button class="btn" id="btnLock">🔓 锁定</button>
+          </div>
+          <div id="shop"></div>
+          <button class="btn" id="btnFight">⚔️ 开战<br><small>空格</small></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="tooltip"></div>
+<div id="toastWrap"></div>
+<div id="modal" class="hidden">
+  <div id="modalCard">
+    <div id="modalTitle"></div>
+    <div id="modalBody"></div>
+    <div id="modalBtns"></div>
+  </div>
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/combat.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>
