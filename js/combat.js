@@ -341,6 +341,7 @@ const Combat = {
     f.hp -= dmg;
     if (type !== 'burn' && type !== 'poison') {
       UIC.floatText(f, (crit ? '暴击 ' : '') + '-' + Math.round(dmg), crit ? 'crit' : type);
+      UIC.hitFlash(f);
     }
     if (f.hp <= 0) {
       f.hp = 0; f.alive = false; f.effects = [];

@@ -8,6 +8,12 @@ const el = (tag, cls, html) => {
   return d;
 };
 
+/* 头像/图标：优先用生成的素材图，加载失败自动退回 emoji */
+const faceHtml = def =>
+  `<div class="face"><span>${def.emoji}</span><img src="assets/heroes/${def.id}.png" draggable="false" onerror="this.remove()"></div>`;
+const itemImgHtml = itId =>
+  `<img src="assets/items/${itId}.png" draggable="false" onerror="this.outerHTML='${ITEMS[itId].emoji}'">`;
+
 const UI = {
   dragSrc: null, // {type:'bench'|'board'|'item', idx?, key?}
 
@@ -57,10 +63,10 @@ const UI = {
     const h = HEROES[unit.heroId];
     const d = el('div', `unit cost${h.cost} star${unit.star}`);
     d.innerHTML = `
-      <div class="stars">${'★'.repeat(unit.star)}</div>
-      <div class="face">${h.emoji}</div>
+      ${faceHtml(h)}
       <div class="uname">${h.name}</div>
-      ${unit.items.length ? `<div class="uitems">${unit.items.map(i => ITEMS[i].emoji).join('')}</div>` : ''}
+      <div class="stars">${'★'.repeat(unit.star)}</div>
+      ${unit.items.length ? `<div class="uitems">${unit.items.map(itemImgHtml).join('')}</div>` : ''}
     `;
     if (draggable && G.phase === 'prep') {
       d.draggable = true;
@@ -87,9 +93,9 @@ const UI = {
     const star = spec.star || 1;
     const d = el('div', 'unit ghost');
     d.innerHTML = `
-      <div class="stars enemyStars">${'★'.repeat(star)}</div>
-      <div class="face">${def.emoji}</div>
+      ${faceHtml(def)}
       <div class="uname">${def.name}</div>
+      <div class="stars enemyStars">${'★'.repeat(star)}</div>
     `;
     d.addEventListener('mouseenter', e => UI.showUnitTip(e, def, star, [], mult * (spec.mult || 1)));
     d.addEventListener('mousemove', e => UI.moveTip(e));
@@ -139,7 +145,8 @@ const UI = {
     bar.innerHTML = G.items.length ? '' : '<span class="hintText">装备栏（拖到棋子身上）</span>';
     G.items.forEach((itId, i) => {
       const it = ITEMS[itId];
-      const d = el('div', 'itemChip' + (itId === 'spatula' ? ' legendary' : ''), it.emoji);
+      const d = el('div', 'itemChip' + (itId === 'spatula' ? ' legendary' : ''),
+        `<span>${it.emoji}</span>${itemImgHtml(itId)}`);
       d.draggable = true;
       d.addEventListener('dragstart', e => {
         UI.dragSrc = { type: 'item', idx: i };
@@ -162,7 +169,7 @@ const UI = {
       const h = HEROES[heroId];
       const card = el('div', `shopCard cost${h.cost}` + (G.gold < h.cost ? ' poor' : ''));
       card.innerHTML = `
-        <div class="scFace">${h.emoji}</div>
+        <div class="scFace"><span>${h.emoji}</span><img src="assets/heroes/${h.id}.png" draggable="false" onerror="this.remove()"></div>
         <div class="scName">${h.name}</div>
         <div class="scTraits">${ORIGINS[h.origin].icon}${ORIGINS[h.origin].name} ${CLASSES[h.cls].icon}${CLASSES[h.cls].name}</div>
         <div class="scCost">💰${h.cost}</div>`;
@@ -248,7 +255,10 @@ const UI = {
     const itemsHtml = items && items.length ?
       `<div class="tipItems">${items.map(i => `${ITEMS[i].emoji}${ITEMS[i].name}`).join('　')}</div>` : '';
     this.showTip(e, `
-      <div class="tipTitle">${def.emoji} ${def.name} ${'★'.repeat(star)}</div>
+      <div class="tipHead">
+        <img src="assets/heroes/${def.id}.png" onerror="this.remove()">
+        <div class="tipTitle">${def.emoji} ${def.name} ${'★'.repeat(star)}</div>
+      </div>
       ${traits}
       <div class="tipStats">
         ❤️${Math.round(def.hp * starMult)}　⚔️${Math.round(def.atk * starMult)}
@@ -309,13 +319,13 @@ const UIC = {
     fighters.forEach(f => {
       const d = el('div', `unit fighter ${f.side} cost${f.def.cost || 0}`);
       d.innerHTML = `
+        ${faceHtml(f.def)}
         <div class="stars ${f.side === 'enemy' ? 'enemyStars' : ''}">${'★'.repeat(f.star)}</div>
-        <div class="face">${f.emoji}</div>
         <div class="bars">
           <div class="hpBar"><div class="hpFillU"></div></div>
           <div class="mpBar"><div class="mpFillU"></div></div>
         </div>
-        ${f.items && f.items.length ? `<div class="uitems">${f.items.map(i => ITEMS[i].emoji).join('')}</div>` : ''}
+        ${f.items && f.items.length ? `<div class="uitems">${f.items.map(itemImgHtml).join('')}</div>` : ''}
       `;
       d.style.left = f.x * CELL + 3 + 'px';
       d.style.top = f.y * CELL + 3 + 'px';
@@ -340,6 +350,14 @@ const UIC = {
       if (p._el) { p._el.style.left = p.px - 10 + 'px'; p._el.style.top = p.py - 10 + 'px'; }
     });
     $('#combatTimer').textContent = `⏱ ${Math.max(0, Combat.TIME_LIMIT - time).toFixed(0)}s`;
+  },
+
+  hitFlash(f) {
+    const d = this.els.get(f.fid);
+    if (!d) return;
+    d.classList.add('hitflash');
+    clearTimeout(d._hfT);
+    d._hfT = setTimeout(() => d.classList.remove('hitflash'), 110);
   },
 
   killUnit(f) {
