@@ -1,96 +1,162 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>金铲铲小战棋</title>
-<link rel="stylesheet" href="style.css?v=1.1">
-</head>
-<body>
-<div id="app">
-  <div id="topbar">
-    <div>
-      <div id="roundLabel">回合 1-1</div>
-      <div id="stageDesc">野怪回合</div>
-    </div>
-    <div id="hpWrap">
-      <div id="hpFill"></div>
-      <div id="hpText">❤️ 100</div>
-    </div>
-    <div class="goldBox">💰<span id="goldText">0</span></div>
-    <div id="streakText"></div>
-    <div id="bestText"></div>
-    <button class="iconBtn" id="btnSpeed">⏩ 1x</button>
-    <button class="iconBtn" id="btnMute">🔊</button>
-    <button class="iconBtn" id="btnRestart">🔄 重开</button>
-  </div>
-
-  <div id="main">
-    <aside id="synergyPanel">
-      <h3>羁绊（棋盘上生效）</h3>
-      <div id="synergyList"></div>
-      <div id="helpBox">
-        <b>玩法</b><br>
-        · 点击商店卡牌购买棋子<br>
-        · 拖到棋盘下半区上阵<br>
-        · 集齐 3 个相同棋子自动升星<br>
-        · 装备拖到棋子身上<br>
-        · 上方红色虚影 = 下回合敌人<br><br>
-        <b>快捷键</b><br>
-        D 刷新商店　F 买经验<br>
-        空格 开始战斗<br><br>
-        <b>经济</b><br>
-        每回合 +5💰，每 10💰 存款 +1 利息（上限5），连胜/连败有奖励
-      </div>
-    </aside>
-
-    <div id="centerCol">
-      <div id="boardWrap">
-        <div id="board"></div>
-        <div id="previewTag">⚔️ 敌方阵容预览</div>
-        <div id="combatTimer"></div>
-      </div>
-
-      <div id="bottomPanel">
-        <div id="benchRow">
-          <div id="bench"></div>
-          <div id="sellZone">🗑️ 出售</div>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#101e25" />
+    <meta
+      name="description"
+      content="金铲铲时空裂痕本地练习版：六角棋盘、58位英雄、装备合成与八人策略对局。"
+    />
+    <title>金铲铲 · 时空裂痕 v1.2</title>
+    <link rel="stylesheet" href="style.css?v=1.2" />
+  </head>
+  <body>
+    <main id="app">
+      <header class="topbar">
+        <div class="brand">
+          <span class="brand-mark">♜</span>
+          <div>金铲铲<span class="brand-sub">时 空 裂 痕</span></div>
+          <span class="edition">本地练习 · v1.2</span>
         </div>
-        <div id="itemBar"></div>
-        <div id="shopPanel">
-          <div id="levelBox">
-            <div id="levelText">Lv.2</div>
-            <div id="boardCount">场上 0/2</div>
-            <div id="xpBarWrap"><div id="xpFill"></div></div>
-            <div id="xpText">0/6</div>
-            <div id="oddsText"></div>
+        <div class="stage-track">
+          <b id="roundLabel">1-1</b>
+          <div id="roundTrack"></div>
+          <span class="phase-label" id="phaseLabel">共享选秀</span
+          ><span class="timer" id="timer">∞</span>
+        </div>
+        <nav class="top-actions">
+          <button id="btnGuide" title="玩法指南" aria-label="玩法指南">?</button
+          ><button id="btnMute" title="切换音效" aria-label="切换音效">♪</button
+          ><button id="btnPause" title="暂停 / 继续">Ⅱ</button
+          ><button id="btnSpeed" title="切换战斗速度">1×</button
+          ><button id="btnRestart" title="重新开局" aria-label="重新开局">
+            ↻</button
+          ><button id="btnFullscreen" title="全屏" aria-label="全屏">⛶</button>
+        </nav>
+      </header>
+      <section class="arena-stage" aria-label="战场">
+        <div id="arena">
+          <img class="arena-art" src="assets/arena.png" alt="经典浮空竞技场" />
+          <div class="ambient"></div>
+          <div class="portal portal-top"></div>
+          <div class="portal portal-bottom"></div>
+          <div id="hexGrid"></div>
+          <div class="center-crest">◈</div>
+          <div id="unitLayer"></div>
+          <canvas id="effects" width="1250" height="740"></canvas>
+          <div id="mascot"></div>
+          <div id="lootArea"></div>
+          <div id="bench"></div>
+        </div>
+        <div id="opponentTag" class="opponent-tag"></div>
+        <div id="battleBanner" class="battle-banner"></div>
+        <div id="population" class="population"></div>
+        <div class="arena-caption">
+          <i></i> 经典竞技场 <span>· 时空裂痕</span>
+        </div>
+      </section>
+      <aside class="left-sidebar">
+        <div class="sidebar-tabs">
+          <button class="active" id="tabTraits">羁绊</button
+          ><button id="tabDamage">伤害</button>
+        </div>
+        <div id="synergyList"></div>
+        <div id="damageList" hidden></div>
+        <button class="subtle-button" id="btnHeroes">
+          英雄图鉴 <span>↗</span>
+        </button>
+        <div class="equipment-panel">
+          <div class="panel-heading">
+            装备区 <button id="btnRecipes">合成图鉴 ↗</button>
           </div>
-          <div id="shopBtns">
-            <button class="btn" id="btnRefresh">🎲 刷新 2💰 (D)</button>
-            <button class="btn" id="btnXp">📖 经验 4💰 (F)</button>
-            <button class="btn" id="btnLock">🔓 锁定</button>
+          <div id="itemBar"></div>
+          <div id="rewardsInfo"></div>
+        </div>
+      </aside>
+      <aside class="right-sidebar">
+        <div class="panel-heading">
+          弈士排名 <span id="aliveCount">8 / 8</span>
+        </div>
+        <div id="players"></div>
+        <div id="scoutPanel" hidden></div>
+        <div class="match-history">
+          <span>对局记录</span>
+          <div id="history"></div>
+        </div>
+      </aside>
+      <div class="bench-caption">
+        <span>备战席 <b id="benchCount">0 / 9</b></span
+        ><span id="interactionHint"
+          >点击英雄，再点击棋盘上阵 · 也可直接拖动</span
+        >
+      </div>
+      <div id="sellZone" tabindex="0">
+        出售英雄 <kbd>E</kbd><span>拖动到此处</span>
+      </div>
+      <footer class="shop-dock">
+        <div class="economy">
+          <div class="gold-line">
+            <span class="gold-coin">●</span><b id="goldText">0</b
+            ><span id="interestDots"></span>
+          </div>
+          <div id="incomeText"></div>
+          <div class="level-line">
+            <b id="levelText">等级 1</b><span id="xpText">0 / 2</span>
+          </div>
+          <div class="xp-track"><i id="xpFill"></i></div>
+          <button class="xp-button" id="btnXp">
+            <span>购买经验 <kbd>F</kbd></span
+            ><span>◉ 4</span>
+          </button>
+        </div>
+        <div class="shop-middle">
+          <div class="shop-heading">
+            <span>招募英雄</span>
+            <div id="oddsText"></div>
+            <span class="shop-status" id="shopStatus">共享卡池</span
+            ><button id="btnLock" aria-label="锁定商店">◇ 锁定</button>
           </div>
           <div id="shop"></div>
-          <button class="btn" id="btnFight">⚔️ 开战<br><small>空格</small></button>
         </div>
+        <div class="shop-actions">
+          <button id="btnRefresh">
+            <span>刷新商店</span><span><kbd>D</kbd> ◉ 2</span></button
+          ><button id="btnFight">
+            <span>准备就绪</span><small>SPACE</small></button
+          ><button id="btnAuto">一键上阵</button>
+        </div>
+      </footer>
+      <div class="bottom-note">
+        时空裂痕 · 单机练习 <span>右键查看弈子详情</span
+        ><span id="saveStatus">对局自动保存</span>
       </div>
+      <div id="carousel" class="carousel-layer" hidden></div>
+      <div id="endScreen" hidden></div>
+    </main>
+    <div id="tooltip" role="tooltip"></div>
+    <div id="toastWrap" aria-live="polite"></div>
+    <div id="dialog" class="dialog-backdrop" hidden>
+      <section
+        class="dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="dialogTitle"
+      >
+        <header>
+          <div>
+            <span class="eyebrow" id="dialogEyebrow">时空裂痕</span>
+            <h2 id="dialogTitle"></h2>
+          </div>
+          <button id="closeDialog" aria-label="关闭">×</button>
+        </header>
+        <div id="dialogBody"></div>
+      </section>
     </div>
-  </div>
-</div>
-
-<div id="tooltip"></div>
-<div id="toastWrap"></div>
-<div id="modal" class="hidden">
-  <div id="modalCard">
-    <div id="modalTitle"></div>
-    <div id="modalBody"></div>
-    <div id="modalBtns"></div>
-  </div>
-</div>
-
-<script src="js/data.js?v=1.1"></script>
-<script src="js/ui.js?v=1.1"></script>
-<script src="js/combat.js?v=1.1"></script>
-<script src="js/game.js?v=1.1"></script>
-</body>
+    <script src="js/official-data.js?v=1.2"></script>
+    <script src="js/data.js?v=1.2"></script>
+    <script src="js/combat.js?v=1.2"></script>
+    <script src="js/ui.js?v=1.2"></script>
+    <script src="js/game.js?v=1.2"></script>
+  </body>
 </html>

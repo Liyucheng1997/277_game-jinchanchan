@@ -1,396 +1,823 @@
-'use strict';
-/* ============ 音效（WebAudio 合成，无需素材） ============ */
-const Sfx = {
-  ctx: null, _lastHit: 0,
-  ac() {
-    if (!this.ctx) { try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { } }
-    return this.ctx;
-  },
-  beep(freq, dur = 0.08, type = 'square', vol = 0.05, slide = 0) {
-    if (G.muted) return;
-    const ctx = this.ac(); if (!ctx) return;
-    const o = ctx.createOscillator(), g = ctx.createGain();
-    o.type = type; o.frequency.value = freq;
-    if (slide) o.frequency.linearRampToValueAtTime(freq + slide, ctx.currentTime + dur);
-    g.gain.value = vol;
-    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
-    o.connect(g); g.connect(ctx.destination);
-    o.start(); o.stop(ctx.currentTime + dur);
-  },
-  buy() { this.beep(700, 0.07, 'square', 0.05); },
-  sell() { this.beep(400, 0.1, 'sawtooth', 0.04, -150); },
-  refresh() { this.beep(520, 0.05, 'triangle', 0.05); this.beep(660, 0.05, 'triangle', 0.05); },
-  combine() { [660, 830, 990].forEach((f, i) => setTimeout(() => this.beep(f, 0.1, 'triangle', 0.06), i * 80)); },
-  levelup() { [520, 660, 780, 1040].forEach((f, i) => setTimeout(() => this.beep(f, 0.12, 'triangle', 0.06), i * 90)); },
-  hit() {
-    const now = performance.now();
-    if (now - this._lastHit < 70) return;
-    this._lastHit = now;
-    this.beep(180 + Math.random() * 60, 0.04, 'square', 0.02);
-  },
-  cast() { this.beep(880, 0.12, 'sine', 0.05, 220); },
-  death() { this.beep(200, 0.18, 'sawtooth', 0.04, -120); },
-  win() { [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => this.beep(f, 0.15, 'triangle', 0.07), i * 120)); },
-  lose() { [400, 350, 300, 250].forEach((f, i) => setTimeout(() => this.beep(f, 0.15, 'sawtooth', 0.05), i * 130)); },
-  item() { this.beep(1000, 0.08, 'sine', 0.06); this.beep(1400, 0.08, 'sine', 0.05); },
-};
-
-/* ============ 全局状态 ============ */
+"use strict";
 let G = null;
-let _uid = 0;
-
+const SAVE_KEY = "jcc-rift-v3";
+const AudioFX = {
+  ctx: null,
+  muted: false,
+  tone(f = 600, d = 0.08, type = "sine", vol = 0.025) {
+    if (this.muted) return;
+    try {
+      this.ctx ??= new (window.AudioContext || window.webkitAudioContext)();
+      const o = this.ctx.createOscillator(),
+        g = this.ctx.createGain();
+      o.type = type;
+      o.frequency.value = f;
+      g.gain.setValueAtTime(vol, this.ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + d);
+      o.connect(g);
+      g.connect(this.ctx.destination);
+      o.start();
+      o.stop(this.ctx.currentTime + d);
+    } catch {}
+  },
+  play(k) {
+    const table = {
+      buy: 720,
+      sell: 360,
+      refresh: 480,
+      combine: 1000,
+      cast: 840,
+      win: 1040,
+      lose: 220,
+      item: 1200,
+    };
+    this.tone(table[k] || 500, k === "combine" ? 0.4 : 0.1);
+  },
+};
 const Game = {
+  engine: null,
+  acc: 0,
+  last: 0,
+  raf: null,
+  finishing: 0,
+  uid: 0,
+  readStorage(key) {
+    try {
+      return localStorage.getItem(key);
+    } catch {
+      return null;
+    }
+  },
+  init() {
+    UI.init();
+    this.load();
+    this.last = performance.now();
+    this.raf = requestAnimationFrame((t) => this.frame(t));
+  },
   newGame() {
+    this.engine = null;
+    this.finishing = 0;
+    UI.selected = null;
+    UI.closeDialog();
     G = {
-      round: 0, hp: 100, gold: 8, level: 2, xp: 0, streak: 0,
-      bench: Array(BENCH_SIZE).fill(null),
+      version: 3,
+      round: 0,
+      hp: 100,
+      gold: 0,
+      level: 1,
+      xp: 0,
+      streak: 0,
       board: {},
-      shop: Array(5).fill(null), locked: false,
-      items: [],
+      bench: Array(9).fill(null),
+      shop: Array(5).fill(null),
       pool: {},
-      phase: 'prep', speed: 1,
-      muted: localStorage.getItem('jcc_muted') === '1',
-      endless: false, over: false,
-      best: Number(localStorage.getItem('jcc_best') || 0),
+      items: [],
+      rewards: [],
+      locked: false,
+      phase: "carousel",
+      prepLeft: 35,
+      paused: false,
+      speed: 1,
+      muted: this.readStorage("jcc-muted") === "1",
+      bots: BOT_NAMES.map((name, i) => ({
+        id: i,
+        name,
+        hp: 100,
+        gold: 5,
+        level: 1,
+        roster: [],
+        plan: BOT_PLANS[i],
+        streak: 0,
+        eliminated: false,
+      })),
+      history: [],
+      income: { base: 0, interest: 0, streak: 0, win: 0 },
+      opponent: null,
+      lastOpponent: -1,
+      carousel: [],
+      rank: null,
+      uid: 0,
     };
-    for (const id in HEROES) G.pool[id] = POOL_SIZE[HEROES[id].cost];
-    this.rollShop(true);
-    UI.renderAll();
-    this.updateSpeedBtn(); this.updateMuteBtn();
+    for (const h of Object.values(HEROES)) G.pool[h.id] = POOL_SIZE[h.cost];
+    AudioFX.muted = G.muted;
+    this.openCarousel();
+    UI.render();
   },
-
-  /* ---------- 商店 ---------- */
-  randHeroByCost(cost) {
-    const ids = Object.keys(HEROES).filter(id => HEROES[id].cost === cost && G.pool[id] > 0);
-    if (!ids.length) return null;
-    let total = 0;
-    ids.forEach(id => total += G.pool[id]);
-    let r = Math.random() * total;
-    for (const id of ids) { r -= G.pool[id]; if (r <= 0) return id; }
-    return ids[ids.length - 1];
+  load() {
+    try {
+      const data = JSON.parse(this.readStorage(SAVE_KEY));
+      if (
+        data?.version === 3 &&
+        ["prep", "carousel", "over"].includes(data.phase)
+      ) {
+        G = data;
+        this.uid = G.uid || 0;
+        G.paused = true;
+        AudioFX.muted = G.muted;
+        UI.render();
+        UI.toast("已恢复上次对局 · 点击继续计时");
+        return;
+      }
+    } catch {}
+    this.newGame();
   },
-
-  rollShop(free) {
+  save() {
+    if (!G || !["prep", "carousel", "over"].includes(G.phase)) return;
+    G.uid = this.uid;
+    try {
+      localStorage.setItem(SAVE_KEY, JSON.stringify(G));
+    } catch {}
+  },
+  frame(t) {
+    const dt = Math.min((t - this.last) / 1000, 0.1);
+    this.last = t;
+    if (G && !G.paused && !UI.blocking) {
+      if (G.phase === "prep") {
+        G.prepLeft -= dt;
+        if (G.prepLeft <= 0) {
+          this.autoDeploy();
+          this.startBattle();
+        }
+        UI.updateTimer();
+      } else if (G.phase === "combat" && this.engine) {
+        this.acc += dt * G.speed;
+        let guard = 0;
+        while (this.acc >= 1 / 30 && guard++ < 12 && !this.engine.done) {
+          this.engine.step();
+          this.acc -= 1 / 30;
+        }
+        UI.combatFrame(this.engine, dt);
+        if (this.engine.done) {
+          this.finishing += dt;
+          if (this.finishing > 1.6) {
+            this.finishing = 0;
+            this.finishBattle();
+          }
+        }
+      }
+    }
+    this.raf = requestAnimationFrame((tt) => this.frame(tt));
+  },
+  unit(heroId, items = []) {
+    return { uid: ++this.uid, heroId, star: 1, items: [...items] };
+  },
+  capacity() {
+    return (
+      G.level +
+      this.refs().reduce(
+        (n, r) =>
+          n +
+          r.unit.items.filter((i) => ["2036", "2047", "2048"].includes(i))
+            .length,
+        0,
+      )
+    );
+  },
+  refs() {
+    return [
+      ...G.bench.map((unit, idx) => ({ unit, loc: { type: "bench", idx } })),
+      ...Object.entries(G.board).map(([key, unit]) => ({
+        unit,
+        loc: { type: "board", key },
+      })),
+    ].filter((r) => r.unit);
+  },
+  get(loc) {
+    return loc?.type === "board"
+      ? G.board[loc.key]
+      : loc?.type === "bench"
+        ? G.bench[loc.idx]
+        : null;
+  },
+  set(loc, u) {
+    if (loc.type === "board") {
+      if (u) G.board[loc.key] = u;
+      else delete G.board[loc.key];
+    } else G.bench[loc.idx] = u;
+  },
+  putUnit(u) {
+    const i = G.bench.indexOf(null);
+    if (i < 0) G.rewards.push(u);
+    else G.bench[i] = u;
+    this.combine(u.heroId);
+  },
+  claimRewards() {
+    while (G.rewards.length && G.bench.includes(null)) {
+      const u = G.rewards.shift();
+      G.bench[G.bench.indexOf(null)] = u;
+      this.combine(u.heroId);
+    }
+  },
+  returnUnit(u) {
+    G.pool[u.heroId] += 3 ** (u.star - 1);
+  },
+  reserve(cost) {
+    const list = Object.values(HEROES).filter(
+      (h) => h.cost === cost && G.pool[h.id] > 0,
+    );
+    let total = list.reduce((n, h) => n + G.pool[h.id], 0),
+      r = Math.random() * total;
+    for (const h of list) {
+      r -= G.pool[h.id];
+      if (r < 0) {
+        G.pool[h.id]--;
+        return h.id;
+      }
+    }
+    return null;
+  },
+  draw(level) {
+    let r = Math.random() * 100,
+      cost = 1;
+    for (const [i, p] of ODDS[level].entries()) {
+      r -= p;
+      if (r < 0) {
+        cost = i + 1;
+        break;
+      }
+    }
+    return (
+      this.reserve(cost) ||
+      [1, 2, 3, 4, 5]
+        .map((c) => c)
+        .reduce((id, c) => id || this.reserve(c), null)
+    );
+  },
+  rollShop(free = false) {
+    if (!free && (G.phase !== "prep" || G.gold < 2)) {
+      if (G.phase === "prep") UI.toast("刷新需要 2 金币");
+      return false;
+    }
     if (!free) {
-      if (G.gold < 2) { UI.toast('金币不够（刷新需要 2💰）'); return; }
       G.gold -= 2;
-      Sfx.refresh();
+      AudioFX.play("refresh");
     }
-    const odds = ODDS[G.level] || ODDS[8];
-    for (let i = 0; i < 5; i++) {
-      let r = Math.random() * 100, cost = 1;
-      for (let c = 0; c < 4; c++) { r -= odds[c]; if (r <= 0) { cost = c + 1; break; } }
-      let id = this.randHeroByCost(cost);
-      if (!id) id = this.randHeroByCost(1) || this.randHeroByCost(2) || this.randHeroByCost(3) || this.randHeroByCost(4);
-      G.shop[i] = id;
-    }
-    G.locked = false;
-    UI.renderAll();
+    G.shop.filter(Boolean).forEach((id) => G.pool[id]++);
+    G.shop = Array.from({ length: 5 }, () => this.draw(G.level));
+    UI.render();
+    this.save();
+    return true;
   },
-
-  buyFromShop(i) {
-    if (G.phase !== 'prep') return;
-    const heroId = G.shop[i];
-    if (!heroId) return;
-    const h = HEROES[heroId];
-    if (G.gold < h.cost) { UI.toast('金币不足！'); return; }
-    const benchIdx = G.bench.findIndex(u => !u);
-    const wouldCombine = this.countUnits(heroId, 1) >= 2;
-    if (benchIdx < 0 && !wouldCombine) { UI.toast('备战席已满！'); return; }
+  buy(i) {
+    if (G.phase !== "prep") return;
+    const id = G.shop[i];
+    if (!id) return;
+    const h = HEROES[id],
+      matches = this.refs().filter(
+        (r) => r.unit.heroId === id && r.unit.star === 1,
+      );
+    if (G.gold < h.cost) {
+      UI.toast("金币不足");
+      return;
+    }
+    if (!G.bench.includes(null) && matches.length < 2) {
+      UI.toast("备战席已满，可先出售或上阵");
+      return;
+    }
     G.gold -= h.cost;
-    G.pool[heroId]--;
     G.shop[i] = null;
-    const unit = { uid: ++_uid, heroId, star: 1, items: [] };
-    if (benchIdx >= 0) G.bench[benchIdx] = unit;
-    else G.bench.push(unit); // 临时超员，合成后移除
-    Sfx.buy();
-    this.tryCombine(heroId);
-    G.bench = G.bench.slice(0, BENCH_SIZE).concat(Array(Math.max(0, BENCH_SIZE - G.bench.length)).fill(null)).slice(0, BENCH_SIZE);
-    UI.renderAll();
+    const u = this.unit(id);
+    if (G.bench.includes(null)) G.bench[G.bench.indexOf(null)] = u;
+    else G.bench.push(u);
+    this.combine(id);
+    G.bench.length = 9;
+    AudioFX.play("buy");
+    UI.render();
+    this.save();
   },
-
-  allUnitRefs() {
-    const refs = [];
-    G.bench.forEach((u, idx) => { if (u) refs.push({ loc: { type: 'bench', idx }, unit: u }); });
-    for (const key in G.board) refs.push({ loc: { type: 'board', key }, unit: G.board[key] });
-    return refs;
-  },
-
-  countUnits(heroId, star) {
-    return this.allUnitRefs().filter(r => r.unit.heroId === heroId && r.unit.star === star).length;
-  },
-
-  tryCombine(heroId) {
+  combine(id) {
     for (let star = 1; star <= 2; star++) {
-      const refs = this.allUnitRefs().filter(r => r.unit.heroId === heroId && r.unit.star === star);
+      const refs = this.refs()
+        .filter((r) => r.unit.heroId === id && r.unit.star === star)
+        .sort(
+          (a, b) =>
+            (a.loc.type === "board" ? -1 : 1) -
+            (b.loc.type === "board" ? -1 : 1),
+        );
       if (refs.length < 3) continue;
-      const three = refs.slice(0, 3);
-      // 保留者：优先场上的那只
-      const keeper = three.find(r => r.loc.type === 'board') || three[0];
-      const items = [];
-      three.forEach(r => r.unit.items.forEach(it => { if (items.length < 3) items.push(it); }));
-      three.forEach(r => {
-        if (r === keeper) return;
-        if (r.loc.type === 'bench') G.bench[r.loc.idx] = null;
-        else delete G.board[r.loc.key];
-      });
-      keeper.unit.star = star + 1;
-      keeper.unit.items = items;
-      Sfx.combine();
-      UI.toast(`✨ ${HEROES[heroId].name} 升到 ${star + 1} 星！`);
-      this.tryCombine(heroId); // 级联
+      const three = refs.slice(0, 3),
+        keep = three[0];
+      const equipment = three.flatMap((r) => r.unit.items);
+      three.slice(1).forEach((r) => this.set(r.loc, null));
+      keep.unit.star++;
+      keep.unit.items = [];
+      for (const item of equipment) {
+        if (!this.equipOn(keep.unit, item, false)) G.items.push(item);
+      }
+      AudioFX.play("combine");
+      UI.toast(`${HEROES[id].name} 升至 ${keep.unit.star} 星`);
+      this.combine(id);
       return;
     }
   },
-
-  sellPrice(unit) {
-    return HEROES[unit.heroId].cost * Math.pow(3, unit.star - 1);
+  sellPrice(u) {
+    const base = HEROES[u.heroId].cost;
+    return base === 1
+      ? 3 ** (u.star - 1)
+      : base * 3 ** (u.star - 1) - (u.star - 1);
   },
-
-  sellUnit(loc) {
-    let unit;
-    if (loc.type === 'bench') { unit = G.bench[loc.idx]; G.bench[loc.idx] = null; }
-    else { unit = G.board[loc.key]; delete G.board[loc.key]; }
-    if (!unit) return;
-    G.gold += this.sellPrice(unit);
-    G.pool[unit.heroId] += Math.pow(3, unit.star - 1);
-    unit.items.forEach(it => G.items.push(it)); // 装备退回
-    Sfx.sell();
-    UI.renderAll();
+  sell(loc) {
+    if (G.phase !== "prep") return;
+    const u = this.get(loc);
+    if (!u) return;
+    G.gold += this.sellPrice(u);
+    this.returnUnit(u);
+    G.items.push(...u.items);
+    this.set(loc, null);
+    UI.selected = null;
+    this.claimRewards();
+    AudioFX.play("sell");
+    UI.render();
+    this.save();
   },
-
-  /* ---------- 拖拽落点 ---------- */
-  handleDrop(dst) {
-    const src = UI.dragSrc;
-    if (!src || G.phase !== 'prep') return;
-    if (src.type === 'item') {
-      // 装备到目标棋子
-      let unit = null;
-      if (dst.type === 'bench') unit = G.bench[dst.idx];
-      else if (dst.type === 'board') unit = G.board[dst.key];
-      if (!unit) { UI.toast('要拖到棋子身上'); return; }
-      if (unit.items.length >= 3) { UI.toast('该棋子装备已满（最多3件）'); return; }
-      const itId = G.items.splice(src.idx, 1)[0];
-      unit.items.push(itId);
-      Sfx.item();
-      UI.renderAll();
+  move(src, dst) {
+    if (G.phase !== "prep") return false;
+    if (!dst || !["board", "bench"].includes(dst.type)) return false;
+    if (src?.type === "item") return this.equip(src.idx, dst);
+    const u = this.get(src);
+    if (!u) return false;
+    if (dst.type === "board" && !/^([0-6]),([4-7])$/.test(dst.key))
+      return false;
+    if (
+      dst.type === "bench" &&
+      (!Number.isInteger(dst.idx) || dst.idx < 0 || dst.idx >= 9)
+    )
+      return false;
+    const target = this.get(dst);
+    if (
+      src.type === "bench" &&
+      dst.type === "board" &&
+      !target &&
+      Object.keys(G.board).length >= this.capacity()
+    ) {
+      UI.toast("上阵人数已满，购买经验提升等级");
+      return false;
+    }
+    this.set(src, target || null);
+    this.set(dst, u);
+    UI.selected = null;
+    this.claimRewards();
+    UI.render();
+    this.save();
+    return true;
+  },
+  equipOn(u, id, notify = true) {
+    if (!ITEMS[id]) return false;
+    const component = !ITEMS[id].recipe.length;
+    const match = component
+      ? u.items.findIndex(
+          (old) =>
+            !ITEMS[old].recipe.length && RECIPES[[old, id].sort().join("+")],
+        )
+      : -1;
+    if (match >= 0) {
+      const result = RECIPES[[u.items[match], id].sort().join("+")];
+      if (result === "2044" && u.items.length > 1) return false;
+      if (EMBLEMS[result] && unitTraits(u).includes(EMBLEMS[result]))
+        return false;
+      u.items[match] = result;
+      if (notify) UI.toast(`合成 ${ITEMS[result].name}`);
+      return true;
+    }
+    if (
+      u.items.includes("2044") ||
+      u.items.length >= 3 ||
+      (id === "2044" && u.items.length)
+    )
+      return false;
+    if (EMBLEMS[id] && unitTraits(u).includes(EMBLEMS[id])) return false;
+    u.items.push(id);
+    return true;
+  },
+  equip(idx, loc) {
+    if (G.phase !== "prep") return false;
+    const u = this.get(loc),
+      id = G.items[idx];
+    if (!u || !id) return false;
+    if (!this.equipOn(u, id)) {
+      UI.toast("无法装备：装备格已满或羁绊重复");
+      return false;
+    }
+    G.items.splice(idx, 1);
+    UI.selected = null;
+    AudioFX.play("item");
+    UI.render();
+    this.save();
+    return true;
+  },
+  craft(a, b) {
+    if (G.phase !== "prep" || a === b) return;
+    const first = G.items[a],
+      second = G.items[b];
+    const recipe = RECIPES[[first, second].sort().join("+")];
+    if (!recipe) {
+      UI.toast("这两件装备不能合成");
       return;
     }
-    // 移动棋子
-    const getU = l => l.type === 'bench' ? G.bench[l.idx] : G.board[l.key];
-    const setU = (l, u) => {
-      if (l.type === 'bench') G.bench[l.idx] = u;
-      else { if (u) G.board[l.key] = u; else delete G.board[l.key]; }
-    };
-    const mover = getU(src);
-    if (!mover) return;
-    if (src.type === dst.type && (src.idx === dst.idx && src.key === dst.key)) return;
-    const target = getU(dst);
-    // 人口限制：从备战席上场且落点为空
-    if (dst.type === 'board' && src.type === 'bench' && !target &&
-      Object.keys(G.board).length >= G.level) {
-      UI.toast(`人口已满（等级 ${G.level} = 最多 ${G.level} 个）`);
-      return;
-    }
-    setU(src, target || null);
-    setU(dst, mover);
-    UI.renderAll();
+    for (const i of [a, b].sort((x, y) => y - x)) G.items.splice(i, 1);
+    G.items.push(recipe);
+    UI.selected = null;
+    AudioFX.play("item");
+    UI.toast(`合成 ${ITEMS[recipe].name}`);
+    UI.render();
+    this.save();
   },
-
-  handleSellDrop() {
-    const src = UI.dragSrc;
-    if (!src || src.type === 'item' || G.phase !== 'prep') return;
-    this.sellUnit(src);
-  },
-
-  /* ---------- 经验 ---------- */
   buyXp() {
-    if (G.phase !== 'prep') return;
-    if (G.level >= MAX_LEVEL) { UI.toast('已经满级！'); return; }
-    if (G.gold < 4) { UI.toast('金币不够（购买经验需要 4💰）'); return; }
+    if (G.phase !== "prep" || G.level >= MAX_LEVEL) return;
+    if (G.gold < 4) {
+      UI.toast("购买经验需要 4 金币");
+      return;
+    }
     G.gold -= 4;
     this.giveXp(4);
-    UI.renderAll();
+    UI.render();
+    this.save();
   },
-
   giveXp(n) {
     if (G.level >= MAX_LEVEL) return;
     G.xp += n;
     while (G.level < MAX_LEVEL && G.xp >= XP_REQ[G.level]) {
       G.xp -= XP_REQ[G.level];
       G.level++;
-      Sfx.levelup();
-      UI.toast(`🎉 升到 ${G.level} 级！人口 +1`);
+      AudioFX.play("combine");
     }
-    if (G.level >= MAX_LEVEL) G.xp = 0;
+    if (G.level === MAX_LEVEL) G.xp = 0;
   },
-
-  /* ---------- 战斗 ---------- */
-  startBattle() {
-    if (G.phase !== 'prep' || G.over) return;
-    const boardUnits = Object.entries(G.board).map(([key, unit]) => {
-      const [x, y] = key.split(',').map(Number);
-      return { unit, x, y };
+  autoDeploy() {
+    this.claimRewards();
+    const used = new Set(Object.keys(G.board));
+    for (
+      let i = 0;
+      i < 9 && Object.keys(G.board).length < this.capacity();
+      i++
+    ) {
+      const u = G.bench[i];
+      if (!u) continue;
+      const rows = HEROES[u.heroId].range > 1 ? [7, 6, 5, 4] : [4, 5, 6, 7];
+      let key;
+      for (const y of rows) {
+        key = [3, 2, 4, 1, 5, 0, 6]
+          .map((x) => x + "," + y)
+          .find((k) => !used.has(k));
+        if (key) break;
+      }
+      G.board[key] = u;
+      G.bench[i] = null;
+      used.add(key);
+    }
+    UI.render();
+  },
+  boardSpecs() {
+    return Object.entries(G.board).map(([key, u]) => {
+      const [x, y] = key.split(",").map(Number);
+      return { ...u, x, y };
     });
-    if (!boardUnits.length) { UI.toast('先把棋子拖上棋盘！'); return; }
-    G.phase = 'combat';
-    UI.hideTip();
-    UI.renderAll();
-    const wave = getWave(G.round);
-    Combat.start(boardUnits, wave.units, wave.mult, res => this.onCombatEnd(res));
   },
-
-  onCombatEnd({ win, survivors }) {
-    G.phase = 'prep';
-    const stage = stageOf(G.round);
-    if (win) {
-      G.streak = G.streak >= 0 ? G.streak + 1 : 1;
-      Sfx.win();
-      UI.toast('🏆 胜利！');
-    } else {
-      G.streak = G.streak <= 0 ? G.streak - 1 : -1;
-      const dmg = 2 + stage + 2 * survivors;
-      G.hp -= dmg;
-      Sfx.lose();
-      UI.toast(`💔 战败，损失 ${dmg} 点生命`);
+  botArmy(bot) {
+    return bot.roster
+      .slice()
+      .sort((a, b) => this.strength(b) - this.strength(a))
+      .slice(0, bot.level);
+  },
+  strength(u) {
+    return (
+      (HEROES[u.heroId].hp[u.star - 1] / 100 +
+        HEROES[u.heroId].atk[u.star - 1] / 10 +
+        HEROES[u.heroId].cost * 2) *
+      (1 + u.items.length * 0.2)
+    );
+  },
+  manageBot(bot) {
+    if (bot.hp <= 0) return;
+    bot.level = Math.min(
+      9,
+      Math.max(
+        bot.level,
+        stageOf(G.round) + 2 + (stepOf(G.round) >= 5 ? 1 : 0),
+      ),
+    );
+    const budget = Math.min(bot.gold, stageOf(G.round) < 3 ? 12 : 22);
+    let spent = 0;
+    for (let roll = 0; roll < 5 && spent < budget; roll++) {
+      if (roll > 0) {
+        if (bot.gold < 2) break;
+        bot.gold -= 2;
+        spent += 2;
+      }
+      const offers = Array.from({ length: 5 }, () => this.draw(bot.level));
+      for (const id of offers) {
+        if (!id) continue;
+        const h = HEROES[id],
+          preferred = bot.plan.includes(id),
+          needed =
+            bot.roster.filter((u) => u.heroId === id && u.star === 1).length >
+            0;
+        if (
+          bot.gold >= h.cost &&
+          bot.roster.length < bot.level + 9 &&
+          (preferred || needed || bot.roster.length < bot.level)
+        ) {
+          bot.gold -= h.cost;
+          spent += h.cost;
+          bot.roster.push(this.unit(id));
+          this.combineBot(bot, id);
+        } else G.pool[id]++;
+      }
     }
-    // 收入
-    const interest = Math.min(5, Math.floor(G.gold / 10));
-    const streakN = Math.abs(G.streak);
-    const streakGold = streakN >= 6 ? 3 : streakN >= 4 ? 2 : streakN >= 2 ? 1 : 0;
-    G.gold += 5 + interest + streakGold + (win ? 1 : 0);
-    this.giveXp(2);
-    // 装备掉落
-    let drops = 0;
-    if (G.round % 3 === 2) drops++;
-    if (G.round % 5 === 4) drops++;
-    for (let i = 0; i < drops; i++) this.grantItem();
-
-    if (G.hp <= 0) { this.gameOver(); return; }
-
-    const finished = G.round === TOTAL_ROUNDS - 1 && !G.endless;
+    const army = this.botArmy(bot);
+    while (bot.roster.length > bot.level + 6) {
+      const sell = bot.roster
+        .filter((u) => !army.includes(u))
+        .sort((a, b) => this.strength(a) - this.strength(b))[0];
+      if (!sell) break;
+      bot.roster.splice(bot.roster.indexOf(sell), 1);
+      bot.gold += this.sellPrice(sell);
+      this.returnUnit(sell);
+    }
+  },
+  combineBot(bot, id) {
+    for (let s = 1; s < 3; s++) {
+      const matches = bot.roster.filter((u) => u.heroId === id && u.star === s);
+      if (matches.length >= 3) {
+        const keep = matches[0];
+        keep.star++;
+        keep.items = matches
+          .slice(0, 3)
+          .flatMap((u) => u.items)
+          .slice(0, 3);
+        bot.roster = bot.roster.filter((u) => !matches.slice(1, 3).includes(u));
+        this.combineBot(bot, id);
+        return;
+      }
+    }
+  },
+  openCarousel() {
+    G.phase = "carousel";
+    G.carousel = Array.from({ length: 9 }, () => {
+      const id =
+        this.reserve(Math.min(5, stageOf(G.round))) ||
+        this.draw(Math.min(9, stageOf(G.round) + 1));
+      return id
+        ? {
+            heroId: id,
+            item: rand(BASE_ITEMS.filter((i) => i !== "1010")),
+            taken: false,
+          }
+        : null;
+    }).filter(Boolean);
+    G.carouselAhead = [];
+    const ahead = G.bots
+      .filter((b) => b.hp > 0 && b.hp < G.hp)
+      .sort((a, b) => a.hp - b.hp);
+    for (const bot of ahead) {
+      const c = rand(G.carousel.filter((c) => !c.taken));
+      if (c) {
+        c.taken = true;
+        c.owner = bot.name;
+        bot.roster.push(this.unit(c.heroId, [c.item]));
+        this.combineBot(bot, c.heroId);
+        G.carouselAhead.push(bot.id);
+      }
+    }
+    UI.render();
+    this.save();
+  },
+  chooseCarousel(i) {
+    if (G.phase !== "carousel") return;
+    const c = G.carousel[i];
+    if (!c || c.taken) return;
+    c.taken = true;
+    c.owner = "你";
+    this.putUnit(this.unit(c.heroId, [c.item]));
+    for (const bot of G.bots.filter(
+      (b) => b.hp > 0 && !G.carouselAhead.includes(b.id),
+    )) {
+      const pick = rand(G.carousel.filter((x) => !x.taken));
+      if (pick) {
+        pick.taken = true;
+        pick.owner = bot.name;
+        bot.roster.push(this.unit(pick.heroId, [pick.item]));
+        this.combineBot(bot, pick.heroId);
+      }
+    }
+    for (const extra of G.carousel.filter((c) => !c.taken))
+      G.pool[extra.heroId]++;
+    G.carousel = [];
     G.round++;
-    this.saveBest();
-
-    if (finished) { this.victory(win); return; }
-
+    if (G.round === 1) {
+      G.gold = 3;
+      this.giveXp(2);
+      this.autoDeploy();
+    } else this.giveXp(2);
+    this.prepare();
+  },
+  prepare() {
+    G.phase = "prep";
+    G.prepLeft = 35;
+    this.engine = null;
+    UI.selected = null;
+    G.bots.forEach((b) => this.manageBot(b));
+    const alive = G.bots.filter((b) => b.hp > 0);
+    G.opponent =
+      roundType(G.round) === "pvp"
+        ? (rand(alive.filter((b) => b.id !== G.lastOpponent)) || alive[0])?.id
+        : null;
     if (!G.locked) this.rollShop(true);
-    else { G.locked = false; UI.renderAll(); }
-    UI.renderAll();
+    this.claimRewards();
+    UI.render();
+    this.save();
   },
-
-  grantItem() {
-    const ids = Object.keys(ITEMS);
-    let total = 0;
-    ids.forEach(id => total += ITEMS[id].weight);
-    let r = Math.random() * total, pick = ids[0];
-    for (const id of ids) { r -= ITEMS[id].weight; if (r <= 0) { pick = id; break; } }
-    G.items.push(pick);
-    Sfx.item();
-    UI.toast(`🎁 获得装备：${ITEMS[pick].emoji} ${ITEMS[pick].name}`);
+  preview() {
+    if (roundType(G.round) === "pve") return creepWave(G.round);
+    const bot = G.bots.find((b) => b.id === G.opponent);
+    return bot ? this.botArmy(bot) : [];
   },
-
-  saveBest() {
-    if (G.round > G.best) {
-      G.best = G.round;
-      localStorage.setItem('jcc_best', String(G.best));
+  startBattle() {
+    if (G.phase !== "prep") return;
+    this.autoDeploy();
+    // Explicit readiness resumes a paused game. Empty boards still resolve a loss.
+    G.paused = false;
+    this.save();
+    G.phase = "combat";
+    UI.selected = null;
+    UI.hideTip();
+    this.engine = new CombatEngine(this.boardSpecs(), this.preview());
+    this.acc = 0;
+    this.finishing = 0;
+    G.lastOpponent = G.opponent;
+    this.aiResults = [];
+    if (roundType(G.round) === "pvp") {
+      const bots = G.bots
+        .filter((b) => b.hp > 0 && b.id !== G.opponent)
+        .sort(() => Math.random() - 0.5);
+      while (bots.length >= 2) {
+        const a = bots.pop(),
+          b = bots.pop();
+        const result = new CombatEngine(this.botArmy(a), this.botArmy(b), {
+          visual: false,
+        }).run();
+        this.aiResults.push({ a: a.id, b: b.id, result });
+      }
+      if (bots.length) {
+        const a = bots[0],
+          b = G.bots.find((b) => b.id === G.opponent);
+        if (b) {
+          const result = new CombatEngine(this.botArmy(a), this.botArmy(b), {
+            visual: false,
+          }).run();
+          this.aiResults.push({ a: a.id, b: null, result });
+        }
+      }
     }
+    UI.beginCombat(this.engine);
+    UI.renderPanels();
   },
-
-  gameOver() {
-    G.over = true;
-    this.saveBest();
-    UI.renderAll();
-    UI.modal('💀 游戏结束',
-      `<p>你坚持到了 <b>回合 ${roundName(G.round)}</b>（第 ${G.round + 1} 回合）。</p>
-       <p>历史最佳：第 ${G.best + 1} 回合。</p>
-       <p>小提示：凑齐羁绊、攒利息、三合一升星，会走得更远！</p>`,
-      [{ text: '再来一局', fn: () => this.newGame() }]);
+  playerDamage(result) {
+    return (
+      [0, 0, 2, 3, 5, 8, 10][Math.min(6, stageOf(G.round))] +
+      Math.max(1, result.survivors.length * 2)
+    );
   },
-
-  victory(finalWin) {
-    Sfx.win();
-    UI.modal(finalWin ? '👑 完美通关！' : '🏅 幸存通关！',
-      `<p>${finalWin
-        ? `你击败了 5-5 的最终 BOSS，通关全部 ${TOTAL_ROUNDS} 个回合！`
-        : `虽然没打过最终 BOSS，但你撑过了全部 ${TOTAL_ROUNDS} 个回合活了下来！`}</p>
-       <p>剩余生命：❤️ ${G.hp}</p>
-       <p>要继续挑战无尽模式吗？敌人会越来越强……</p>`,
-      [
-        { text: '♾️ 无尽模式', fn: () => { G.endless = true; if (!G.locked) this.rollShop(true); UI.renderAll(); } },
-        { text: '🔄 重新开始', fn: () => this.newGame() },
-      ]);
+  finishBattle() {
+    const engine = this.engine;
+    if (!engine || G.phase !== "combat") return;
+    const res = engine.result,
+      win = res.winner === 0,
+      pvp = roundType(G.round) === "pvp";
+    const enemy = G.bots.find((b) => b.id === G.opponent);
+    const damage = this.playerDamage(res);
+    G.lastDamage = engine.units
+      .filter((u) => u.side === 0 && u.heroId)
+      .map((u) => ({
+        heroId: u.heroId,
+        damage: Math.round(u.damage),
+        healing: Math.round(u.healing),
+      }))
+      .sort((a, b) => b.damage - a.damage);
+    if (pvp) {
+      if (win && enemy) enemy.hp = Math.max(0, enemy.hp - damage);
+      if (res.winner === -1 && enemy) enemy.hp = Math.max(0, enemy.hp - damage);
+      if (!win) G.hp = Math.max(0, G.hp - damage);
+      G.streak = win ? Math.max(0, G.streak) + 1 : Math.min(0, G.streak) - 1;
+      for (const pair of this.aiResults) {
+        const a = G.bots.find((b) => b.id === pair.a),
+          b = G.bots.find((b) => b.id === pair.b),
+          d = this.playerDamage(pair.result);
+        if (pair.result.winner !== 0) a.hp = Math.max(0, a.hp - d);
+        if (b && pair.result.winner !== 1) b.hp = Math.max(0, b.hp - d);
+      }
+      const cnt = traitCounts(Object.values(G.board));
+      if (tierOf("r8", cnt.r8 || 0))
+        G.gold += Math.floor(Math.random() * 5) + (cnt.r8 >= 5 ? 3 : 0);
+    } else {
+      if (!win) G.hp = Math.max(0, G.hp - damage);
+      const killed = engine.units.filter(
+        (u) => u.side === 1 && !u.alive,
+      ).length;
+      if (killed) {
+        const previous = G.loot || { gold: 0, items: [] };
+        G.loot = {
+          gold: previous.gold + 2 + Math.floor(Math.random() * 3),
+          items: [
+            ...previous.items,
+            ...Array.from({ length: stageOf(G.round) >= 2 ? 2 : 1 }, () =>
+              rand(BASE_ITEMS.filter((i) => i !== "1010")),
+            ),
+          ],
+        };
+      }
+    }
+    G.history.push({
+      round: roundName(G.round),
+      win,
+      pvp,
+      damage: win ? 0 : damage,
+    });
+    G.history = G.history.slice(-12);
+    const interest = Math.min(5, Math.floor(G.gold / 10)),
+      streak = Math.abs(G.streak),
+      streakGold = pvp
+        ? streak >= 5
+          ? 3
+          : streak >= 4
+            ? 2
+            : streak >= 2
+              ? 1
+              : 0
+        : 0,
+      base = G.round < 3 ? G.round + 2 : 5;
+    G.income = { base, interest, streak: streakGold, win: pvp && win ? 1 : 0 };
+    G.gold += base + interest + streakGold + G.income.win;
+    for (const b of G.bots) {
+      if (b.hp <= 0 && !b.eliminated) {
+        b.eliminated = true;
+        b.roster.forEach((u) => this.returnUnit(u));
+        b.roster = [];
+      } else if (b.hp > 0) {
+        b.gold += 5 + Math.min(5, Math.floor(b.gold / 10));
+        if (!pvp) {
+          const carry = this.botArmy(b).sort(
+            (a, b) => HEROES[b.heroId].range - HEROES[a.heroId].range,
+          )[0];
+          if (carry && carry.items.length < 3)
+            carry.items.push(
+              rand(
+                Object.keys(ITEMS).filter(
+                  (i) =>
+                    ITEMS[i].recipe.length &&
+                    !EMBLEMS[i] &&
+                    !["2044", "2036", "2047", "2048"].includes(i),
+                ),
+              ),
+            );
+        }
+      }
+    }
+    AudioFX.play(win ? "win" : "lose");
+    UI.toast(win ? "战斗胜利" : `战斗失利 · 生命 -${damage}`);
+    if (G.hp <= 0 || G.bots.every((b) => b.hp <= 0)) {
+      G.phase = "over";
+      G.rank = G.hp > 0 ? 1 : 1 + G.bots.filter((b) => b.hp > 0).length;
+      UI.render();
+      this.save();
+      return;
+    }
+    G.round++;
+    this.giveXp(2);
+    if (roundType(G.round) === "carousel") this.openCarousel();
+    else this.prepare();
   },
-
-  toggleSpeed() {
-    G.speed = G.speed === 1 ? 2 : 1;
-    this.updateSpeedBtn();
+  collectLoot() {
+    if (!G.loot || G.phase !== "prep") return;
+    const loot = G.loot;
+    G.gold += loot.gold;
+    G.items.push(...loot.items);
+    G.loot = null;
+    AudioFX.play("item");
+    UI.toast(
+      `获得 ${loot.gold} 金币 · ${loot.items.map((i) => ITEMS[i].name).join("、")}`,
+    );
+    UI.render();
+    this.save();
   },
-  updateSpeedBtn() { $('#btnSpeed').textContent = G.speed === 1 ? '⏩ 1x' : '⏩ 2x'; },
-
+  togglePause() {
+    G.paused = !G.paused;
+    UI.renderPanels();
+    this.save();
+  },
   toggleMute() {
     G.muted = !G.muted;
-    localStorage.setItem('jcc_muted', G.muted ? '1' : '0');
-    this.updateMuteBtn();
+    AudioFX.muted = G.muted;
+    try {
+      localStorage.setItem("jcc-muted", G.muted ? "1" : "0");
+    } catch {}
+    UI.renderPanels();
   },
-  updateMuteBtn() { $('#btnMute').textContent = G.muted ? '🔇' : '🔊'; },
-};
-
-/* ============ 初始化 ============ */
-window.addEventListener('DOMContentLoaded', () => {
-  UI.buildBoard();
-  UI.buildBench();
-
-  // 自适应缩放：小窗口整体缩小，保证界面完整可见
-  const fitScale = () => {
-    const z = Math.min(1, innerHeight / 880, innerWidth / 1170);
-    const app = $('#app');
-    app.style.zoom = z;
-    app.style.height = Math.round(innerHeight / z) + 'px';
-  };
-  fitScale();
-  window.addEventListener('resize', fitScale);
-
-  $('#btnRefresh').addEventListener('click', () => Game.rollShop(false));
-  $('#btnXp').addEventListener('click', () => Game.buyXp());
-  $('#btnFight').addEventListener('click', () => Game.startBattle());
-  $('#btnSpeed').addEventListener('click', () => Game.toggleSpeed());
-  $('#btnMute').addEventListener('click', () => Game.toggleMute());
-  $('#btnLock').addEventListener('click', () => {
-    if (G.phase !== 'prep') return;
+  toggleLock() {
+    if (G.phase !== "prep") return;
     G.locked = !G.locked;
-    UI.renderShop();
-  });
-  $('#btnRestart').addEventListener('click', () => {
-    UI.modal('重新开始？', '<p>当前进度将会丢失。</p>', [
-      { text: '确认重开', fn: () => Game.newGame() },
-      { text: '取消' },
-    ]);
-  });
-
-  const sellZone = $('#sellZone');
-  sellZone.addEventListener('dragover', e => {
-    e.preventDefault();
-    sellZone.classList.add('drop');
-    if (UI.dragSrc && UI.dragSrc.type !== 'item') {
-      const u = UI.dragSrc.type === 'bench' ? G.bench[UI.dragSrc.idx] : G.board[UI.dragSrc.key];
-      if (u) sellZone.textContent = `出售 +${Game.sellPrice(u)}💰`;
-    }
-  });
-  sellZone.addEventListener('dragleave', () => { sellZone.classList.remove('drop'); sellZone.textContent = '🗑️ 出售'; });
-  sellZone.addEventListener('drop', e => {
-    e.preventDefault();
-    sellZone.classList.remove('drop');
-    sellZone.textContent = '🗑️ 出售';
-    Game.handleSellDrop();
-  });
-
-  document.addEventListener('keydown', e => {
-    if (e.repeat) return;
-    if (e.key === 'd' || e.key === 'D') Game.rollShop(false);
-    if (e.key === 'f' || e.key === 'F') Game.buyXp();
-    if (e.key === ' ') { e.preventDefault(); Game.startBattle(); }
-  });
-
-  Game.newGame();
-});
+    UI.renderPanels();
+    this.save();
+  },
+};
+window.addEventListener("DOMContentLoaded", () => Game.init());

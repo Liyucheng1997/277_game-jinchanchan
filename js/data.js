@@ -1,194 +1,324 @@
-'use strict';
-/* ============ 基础常量 ============ */
-const COLS = 7, ROWS = 8, CELL = 64;
-const PLAYER_ROW_MIN = 4; // 玩家可放置 y=4..7
-const BENCH_SIZE = 9;
-const MAX_LEVEL = 8;
-const TOTAL_ROUNDS = 25;
-
-/* 升级所需经验（当前等级 -> 升到下一级所需） */
-const XP_REQ = { 2: 6, 3: 10, 4: 18, 5: 30, 6: 48, 7: 72 };
-
-/* 商店概率：等级 -> [1费,2费,3费,4费] 百分比 */
+"use strict";
+const HEROES = OFFICIAL.heroes,
+  ITEMS = OFFICIAL.items,
+  TRAITS = OFFICIAL.traits;
+const COLS = 7,
+  ROWS = 8,
+  BENCH_SIZE = 9,
+  MAX_LEVEL = 9;
+const XP_REQ = { 1: 2, 2: 2, 3: 6, 4: 10, 5: 20, 6: 36, 7: 56, 8: 80 };
 const ODDS = {
-  2: [100, 0, 0, 0],
-  3: [70, 30, 0, 0],
-  4: [50, 35, 15, 0],
-  5: [40, 35, 22, 3],
-  6: [30, 35, 27, 8],
-  7: [20, 32, 32, 16],
-  8: [14, 24, 34, 28],
+  1: [100, 0, 0, 0, 0],
+  2: [100, 0, 0, 0, 0],
+  3: [75, 25, 0, 0, 0],
+  4: [55, 30, 15, 0, 0],
+  5: [45, 33, 20, 2, 0],
+  6: [25, 40, 30, 5, 0],
+  7: [19, 30, 35, 15, 1],
+  8: [15, 20, 35, 25, 5],
+  9: [10, 15, 30, 30, 15],
 };
-
-/* 每个英雄在牌池里的份数（按费用） */
-const POOL_SIZE = { 1: 24, 2: 18, 3: 15, 4: 10 };
-
-/* ============ 羁绊 ============ */
-const ORIGINS = {
-  fire:   { name: '烈焰', icon: '🔥', thresholds: [2, 4],
-            desc: '烈焰单位的普攻点燃敌人，每秒造成真实伤害，持续3秒。<br>(2) 10/秒　(4) 26/秒' },
-  ice:    { name: '寒冰', icon: '❄️', thresholds: [2, 4],
-            desc: '寒冰单位的普攻冰缓敌人，降低攻速，持续3秒。<br>(2) -25%　(4) -50%' },
-  forest: { name: '森林', icon: '🌿', thresholds: [2, 4],
-            desc: '全队每秒回复最大生命值。<br>(2) 0.6%　(4) 1.6%' },
+const POOL_SIZE = { 1: 29, 2: 22, 3: 18, 4: 12, 5: 10 };
+const BASE_ITEMS = Object.keys(ITEMS).filter((k) => !ITEMS[k].recipe.length);
+const RECIPES = Object.fromEntries(
+  Object.values(ITEMS)
+    .filter((i) => i.recipe.length)
+    .map((i) => [i.recipe.slice().sort().join("+"), i.id]),
+);
+const EMBLEMS = {
+  4108: "j1",
+  4115: "j2",
+  4121: "j10",
+  4126: "r1",
+  4130: "j7",
+  4133: "j8",
+  4135: "r5",
+  4147: "r12",
 };
-const CLASSES = {
-  warrior:  { name: '战士', icon: '🛡️', thresholds: [2, 4],
-              desc: '战士获得额外护甲。<br>(2) +30　(4) +75' },
-  archer:   { name: '射手', icon: '🏹', thresholds: [2, 3],
-              desc: '射手获得额外攻速。<br>(2) +35%　(3) +80%' },
-  mage:     { name: '法师', icon: '🔮', thresholds: [2, 4],
-              desc: '法师获得法术强度。<br>(2) +35%　(4) +90%' },
-  assassin: { name: '刺客', icon: '🗡️', thresholds: [2, 3],
-              desc: '开战时刺客跃入敌方后排。<br>(2) +40%暴击率　(3) +70%暴击率' },
-};
-
-/* ============ 英雄 ============ */
-/* star1 基础属性；升星后 生命/攻击 ×1.8 每星 */
-const HEROES = {
-  yanren:   { id: 'yanren', name: '焰刃', emoji: '⚔️', cost: 1, origin: 'fire', cls: 'warrior',
-    hp: 650, atk: 55, as: 0.7, range: 1, armor: 35, manaMax: 70, manaStart: 20,
-    skill: { name: '烈焰斩', desc: '重斩当前目标，造成 {dmg} 魔法伤害并点燃3秒。',
-      vals: { dmg: [180, 280, 460] } } },
-  bingyu:   { id: 'bingyu', name: '冰羽', emoji: '🏹', cost: 1, origin: 'ice', cls: 'archer',
-    hp: 480, atk: 52, as: 0.8, range: 3, armor: 20, manaMax: 60, manaStart: 0,
-    skill: { name: '穿心冰箭', desc: '射出冰箭，造成 {dmg} 魔法伤害并冰冻 {t} 秒。',
-      vals: { dmg: [170, 270, 440], t: [1, 1, 1.5] } } },
-  tengci:   { id: 'tengci', name: '藤刺', emoji: '🌿', cost: 1, origin: 'forest', cls: 'assassin',
-    hp: 560, atk: 58, as: 0.75, range: 1, armor: 25, manaMax: 70, manaStart: 10,
-    skill: { name: '毒之刃', desc: '刺击目标，造成 {dmg} 魔法伤害，并附加3秒剧毒（每秒 {dps}）。',
-      vals: { dmg: [150, 240, 390], dps: [30, 45, 75] } } },
-  huohua:   { id: 'huohua', name: '火花', emoji: '✨', cost: 1, origin: 'fire', cls: 'mage',
-    hp: 480, atk: 42, as: 0.7, range: 3, armor: 20, manaMax: 60, manaStart: 10,
-    skill: { name: '火球术', desc: '投掷火球，对目标及周围一格敌人造成 {dmg} 魔法伤害。',
-      vals: { dmg: [190, 300, 500] } } },
-
-  bingjia:  { id: 'bingjia', name: '冰甲', emoji: '🧊', cost: 2, origin: 'ice', cls: 'warrior',
-    hp: 850, atk: 60, as: 0.65, range: 1, armor: 45, manaMax: 80, manaStart: 30,
-    skill: { name: '冰霜护甲', desc: '获得 {sh} 护盾，持续4秒；护盾期间攻击他的敌人被冰缓30%。',
-      vals: { sh: [280, 450, 750] } } },
-  yangong:  { id: 'yangong', name: '焰弓', emoji: '🎯', cost: 2, origin: 'fire', cls: 'archer',
-    hp: 560, atk: 68, as: 0.85, range: 3, armor: 20, manaMax: 70, manaStart: 0,
-    skill: { name: '爆裂箭雨', desc: '向最近的3名敌人各射一箭，造成 {dmg} 魔法伤害。',
-      vals: { dmg: [150, 240, 400] } } },
-  muling:   { id: 'muling', name: '木灵', emoji: '🍃', cost: 2, origin: 'forest', cls: 'mage',
-    hp: 560, atk: 45, as: 0.7, range: 3, armor: 20, manaMax: 50, manaStart: 20,
-    skill: { name: '治愈之风', desc: '治疗生命值最低的友军 {heal} 点生命。',
-      vals: { heal: [260, 420, 700] } } },
-  shuangren:{ id: 'shuangren', name: '霜刃', emoji: '🔪', cost: 2, origin: 'ice', cls: 'assassin',
-    hp: 640, atk: 68, as: 0.8, range: 1, armor: 30, manaMax: 80, manaStart: 20,
-    skill: { name: '霜之突袭', desc: '闪现到生命最低的敌人身边，造成 {dmg} 魔法伤害并冰冻1秒。',
-      vals: { dmg: [200, 320, 520] } } },
-
-  senzhishou:{ id: 'senzhishou', name: '森之守', emoji: '🌳', cost: 3, origin: 'forest', cls: 'warrior',
-    hp: 1050, atk: 70, as: 0.65, range: 1, armor: 55, manaMax: 90, manaStart: 40,
-    skill: { name: '荆棘壁垒', desc: '获得 {sh} 护盾，持续5秒；护盾期间反弹所受普攻伤害的30%。',
-      vals: { sh: [350, 560, 950] } } },
-  bingjing: { id: 'bingjing', name: '冰晶', emoji: '💎', cost: 3, origin: 'ice', cls: 'mage',
-    hp: 620, atk: 50, as: 0.7, range: 3, armor: 25, manaMax: 70, manaStart: 15,
-    skill: { name: '暴风雪', desc: '对所有敌人造成 {dmg} 魔法伤害并冰缓40%，持续3秒。',
-      vals: { dmg: [140, 220, 380] } } },
-  yanying:  { id: 'yanying', name: '炎影', emoji: '👤', cost: 3, origin: 'fire', cls: 'assassin',
-    hp: 720, atk: 82, as: 0.85, range: 1, armor: 30, manaMax: 90, manaStart: 30,
-    skill: { name: '灼热连斩', desc: '连续斩击3次，每次造成 {dmg} 魔法伤害并点燃敌人。',
-      vals: { dmg: [80, 130, 220] } } },
-
-  fenghuang:{ id: 'fenghuang', name: '凤凰', emoji: '🐦‍🔥', cost: 4, origin: 'fire', cls: 'mage',
-    hp: 850, atk: 60, as: 0.75, range: 3, armor: 30, manaMax: 100, manaStart: 40,
-    skill: { name: '浴火', desc: '烈焰爆发：对目标周围两格内敌人造成 {dmg} 魔法伤害并点燃，自身回复 {heal} 生命。',
-      vals: { dmg: [280, 450, 760], heal: [250, 400, 650] } } },
-  gushu:    { id: 'gushu', name: '古树', emoji: '🌲', cost: 4, origin: 'forest', cls: 'warrior',
-    hp: 1400, atk: 75, as: 0.6, range: 1, armor: 60, manaMax: 110, manaStart: 50,
-    skill: { name: '震地横扫', desc: '横扫周围一格敌人，造成 {dmg} 魔法伤害并眩晕 {t} 秒。',
-      vals: { dmg: [220, 350, 600], t: [1.2, 1.5, 2] } } },
-  binglong: { id: 'binglong', name: '冰龙', emoji: '🐉', cost: 4, origin: 'ice', cls: 'archer',
-    hp: 800, atk: 78, as: 0.8, range: 3, armor: 30, manaMax: 90, manaStart: 30,
-    skill: { name: '极寒吐息', desc: '向最近的3名敌人吐息，造成 {dmg} 魔法伤害并冰缓50%，持续3秒。',
-      vals: { dmg: [220, 350, 570] } } },
-};
-
-/* ============ 野怪 ============ */
-const CREEPS = {
-  wolf:  { id: 'wolf', name: '野狼', emoji: '🐺', cost: 0, hp: 420, atk: 42, as: 0.7, range: 1, armor: 15, manaMax: 0, manaStart: 0 },
-  boar:  { id: 'boar', name: '野猪', emoji: '🐗', cost: 0, hp: 900, atk: 60, as: 0.6, range: 1, armor: 25, manaMax: 0, manaStart: 0 },
-  golem: { id: 'golem', name: '石魔', emoji: '🗿', cost: 0, hp: 1700, atk: 85, as: 0.55, range: 1, armor: 45, manaMax: 0, manaStart: 0 },
-};
-
-/* ============ 装备 ============ */
-const ITEMS = {
-  sword:   { id: 'sword', name: '利剑', emoji: '⚔️', weight: 1, desc: '+25 攻击力',
-             apply: s => { s.atk += 25; } },
-  staff:   { id: 'staff', name: '法杖', emoji: '🪄', weight: 1, desc: '+30% 法术强度',
-             apply: s => { s.sp += 30; } },
-  plate:   { id: 'plate', name: '重甲', emoji: '🛡️', weight: 1, desc: '+30 护甲',
-             apply: s => { s.armor += 30; } },
-  heart:   { id: 'heart', name: '生命宝石', emoji: '❤️', weight: 1, desc: '+250 生命值',
-             apply: s => { s.hp += 250; } },
-  feather: { id: 'feather', name: '疾风羽', emoji: '🪶', weight: 1, desc: '+25% 攻击速度',
-             apply: s => { s.asMult += 0.25; } },
-  gem:     { id: 'gem', name: '蓝水晶', emoji: '🔷', weight: 1, desc: '开战时获得 40 法力',
-             apply: s => { s.manaStart += 40; } },
-  spatula: { id: 'spatula', name: '金铲铲', emoji: '🥄', weight: 0.4, desc: '传说！攻击/生命/护甲 +15%，攻速/法强 +15%',
-             apply: s => { s.atk *= 1.15; s.hp *= 1.15; s.armor *= 1.15; s.asMult += 0.15; s.sp += 15; } },
-};
-
-/* ============ 敌方波次 ============ */
-/* e(id, star)：英雄；c(id, mult)：野怪（mult 为额外属性倍率） */
-function _e(id, star) { return { kind: 'hero', id, star }; }
-function _c(id, mult = 1) { return { kind: 'creep', id, mult }; }
-
-const WAVES = [
-  /* 阶段 1 */
-  { units: [_c('wolf'), _c('wolf')] },
-  { units: [_c('wolf'), _c('wolf'), _c('wolf')] },
-  { units: [_c('wolf'), _c('wolf'), _c('boar')] },
-  { units: [_e('yanren', 1), _e('huohua', 1), _e('bingyu', 1)] },
-  { units: [_e('yanren', 1), _e('yangong', 1), _e('huohua', 1), _e('bingyu', 1)] },
-  /* 阶段 2 */
-  { units: [_e('bingjia', 1), _e('shuangren', 1), _e('bingyu', 1), _e('huohua', 1)] },
-  { units: [_e('yanren', 2), _e('huohua', 1), _e('yangong', 1), _e('tengci', 1), _e('bingyu', 1)] },
-  { units: [_e('bingjia', 2), _e('bingyu', 2), _e('shuangren', 1), _e('muling', 1), _e('huohua', 1)] },
-  { units: [_e('tengci', 2), _e('muling', 1), _e('yanren', 2), _e('yangong', 1), _e('bingyu', 1)] },
-  { units: [_c('golem'), _c('boar'), _c('boar')] },
-  /* 阶段 3 */
-  { units: [_e('yanren', 2), _e('yangong', 2), _e('huohua', 2), _e('yanying', 1), _e('bingyu', 1)] },
-  { units: [_e('bingjia', 2), _e('bingjing', 1), _e('shuangren', 2), _e('bingyu', 2), _e('muling', 1)] },
-  { units: [_e('tengci', 2), _e('muling', 2), _e('senzhishou', 1), _e('bingyu', 2), _e('yangong', 1)] },
-  { units: [_e('bingjia', 2), _e('senzhishou', 1), _e('yangong', 2), _e('huohua', 2), _e('bingjing', 1), _e('tengci', 1)] },
-  { units: [_c('golem', 1.3), _c('golem', 1.3), _c('boar', 1.3), _c('boar', 1.3)] },
-  /* 阶段 4 */
-  { units: [_e('yanren', 2), _e('yangong', 2), _e('huohua', 2), _e('yanying', 2), _e('fenghuang', 1), _e('bingjia', 2)] },
-  { units: [_e('bingjia', 2), _e('bingjing', 2), _e('shuangren', 2), _e('bingyu', 2), _e('binglong', 1), _e('muling', 2)] },
-  { units: [_e('senzhishou', 2), _e('gushu', 1), _e('tengci', 2), _e('muling', 2), _e('yangong', 2), _e('bingyu', 2)] },
-  { units: [_e('bingjia', 2), _e('senzhishou', 2), _e('yanying', 2), _e('bingjing', 2), _e('yangong', 2), _e('muling', 2), _e('shuangren', 2)] },
-  { units: [_c('golem', 1.6), _c('golem', 1.6), _c('golem', 1.6), _c('boar', 1.6), _c('boar', 1.6)] },
-  /* 阶段 5 */
-  { units: [_e('yanren', 3), _e('yangong', 3), _e('huohua', 2), _e('yanying', 2), _e('fenghuang', 1), _e('bingjia', 2), _e('muling', 2)] },
-  { units: [_e('binglong', 2), _e('bingjing', 2), _e('bingjia', 3), _e('shuangren', 3), _e('bingyu', 3), _e('muling', 2), _e('senzhishou', 2)] },
-  { units: [_e('gushu', 2), _e('senzhishou', 3), _e('tengci', 3), _e('muling', 3), _e('binglong', 1), _e('yangong', 2), _e('huohua', 2)] },
-  { units: [_e('fenghuang', 2), _e('gushu', 2), _e('binglong', 2), _e('yanying', 3), _e('bingjia', 3), _e('bingjing', 2), _e('muling', 2), _e('yangong', 2)] },
-  /* 5-5 最终 BOSS */
-  { units: [_e('fenghuang', 3), _e('gushu', 3), _e('binglong', 3), _e('senzhishou', 3), _e('bingjia', 3), _e('bingjing', 3), _e('shuangren', 3), _e('yangong', 3)] },
+const COST_COLORS = [
+  "#82958e",
+  "#a5b5b4",
+  "#56caa1",
+  "#53b8ed",
+  "#c086ec",
+  "#e5bc63",
 ];
-
-/* 取第 i 回合（0-based）的波次；25 回合之后进入无尽模式，循环后期波次并加成 */
-function getWave(i) {
-  if (i < WAVES.length) return { units: WAVES[i].units, mult: 1 };
-  const base = WAVES[20 + ((i - WAVES.length) % 5)];
-  const mult = Math.pow(1.18, i - WAVES.length + 1);
-  return { units: base.units, mult };
+const Hex = {
+  cube(x, y) {
+    const q = x - (y - (y & 1)) / 2;
+    return [q, -q - y, y];
+  },
+  distance(a, b) {
+    const ac = this.cube(a.x, a.y),
+      bc = this.cube(b.x, b.y);
+    return Math.max(...ac.map((v, i) => Math.abs(v - bc[i])));
+  },
+  neighbors(p) {
+    const dirs =
+      p.y & 1
+        ? [
+            [1, 0],
+            [-1, 0],
+            [0, -1],
+            [1, -1],
+            [0, 1],
+            [1, 1],
+          ]
+        : [
+            [1, 0],
+            [-1, 0],
+            [-1, -1],
+            [0, -1],
+            [-1, 1],
+            [0, 1],
+          ];
+    return dirs
+      .map(([x, y]) => ({ x: p.x + x, y: p.y + y }))
+      .filter((p) => p.x >= 0 && p.x < 7 && p.y >= 0 && p.y < 8);
+  },
+  point(x, y) {
+    const width = 470 + y * 15;
+    return {
+      x: 625 + ((x - 3 + (y & 1 ? 0.25 : -0.25)) * width) / 7,
+      y: 178 + y * 40,
+    };
+  },
+  key(p) {
+    return p.x + "," + p.y;
+  },
+  cells() {
+    return Array.from({ length: 56 }, (_, i) => ({
+      x: i % 7,
+      y: Math.floor(i / 7),
+    }));
+  },
+};
+const rand = (arr, rng = Math.random) => arr[Math.floor(rng() * arr.length)];
+function stageOf(r) {
+  return r < 4 ? 1 : 2 + Math.floor((r - 4) / 7);
 }
-
-function stageOf(i) { return Math.floor(i / 5) + 1; }
-function roundName(i) { return `${stageOf(i)}-${(i % 5) + 1}`; }
-
-/* 技能描述插值：{key} -> 三星数值 a/b/c，或当前星级数值 */
-function skillDesc(hero, star = 0) {
-  if (!hero.skill) return '（无技能）';
-  return hero.skill.desc.replace(/\{(\w+)\}/g, (_, k) => {
-    const arr = hero.skill.vals[k];
-    if (!arr) return '?';
-    if (star >= 1) return `<b>${arr[star - 1]}</b>`;
-    return `<b>${arr.join('/')}</b>`;
+function stepOf(r) {
+  return r < 4 ? r + 1 : 1 + ((r - 4) % 7);
+}
+function roundName(r) {
+  return stageOf(r) + "-" + stepOf(r);
+}
+function roundType(r) {
+  if (r === 0 || (r >= 4 && stepOf(r) === 4)) return "carousel";
+  if (r < 4 || stepOf(r) === 7) return "pve";
+  return "pvp";
+}
+function unitTraits(u) {
+  return [
+    ...new Set([
+      ...HEROES[u.heroId].traits,
+      ...(u.items || []).map((i) => EMBLEMS[i]).filter(Boolean),
+    ]),
+  ];
+}
+function traitCounts(units) {
+  const cnt = {},
+    seen = new Set();
+  for (const u of units) {
+    if (!HEROES[u.heroId] || seen.has(u.heroId)) continue;
+    seen.add(u.heroId);
+    for (const t of unitTraits(u)) cnt[t] = (cnt[t] || 0) + 1;
+  }
+  return cnt;
+}
+function tierOf(t, n) {
+  if (t === "r11" && n !== 1 && n !== 4) return 0;
+  return TRAITS[t]?.thresholds.filter((x) => n >= x).length || 0;
+}
+function skillValue(h, star, i = 0, fallback = 0) {
+  const v =
+    h.skill.values[i]?.split("/")[star - 1] ?? h.skill.values[i]?.split("/")[0];
+  return v === undefined
+    ? fallback
+    : parseFloat(v) / (v.includes("%") ? 100 : 1);
+}
+function skillDesc(h, star = 1) {
+  return (
+    h.skill.desc ||
+    "选牌：强化下一次攻击，造成魔法伤害，并随机附加眩晕、范围伤害或法力回复。"
+  ).replace(/\[(\d+)#(\d+)\]/g, (_, type, i) => {
+    const v =
+      h.skill.values[i]?.split("/")[star - 1] ??
+      h.skill.values[i]?.split("/")[0] ??
+      "—";
+    return `<b>${v}</b>`;
   });
 }
+function itemStats(id) {
+  const i = ITEMS[id],
+    s = {};
+  if (!i) return s;
+  const map = {
+    物理加成: "ad",
+    攻击力: "ad",
+    攻击速度: "as",
+    法术加成: "ap",
+    法术强度: "ap",
+    护甲: "armor",
+    魔法抗性: "mr",
+    生命上限: "hp",
+    暴击率: "crit",
+    法力回复: "regen",
+    法力值: "mana",
+    全能吸血: "vamp",
+    伤害增幅: "amp",
+    伤害减免: "reduce",
+  };
+  for (const m of i.basic.matchAll(
+    /\+(\d+(?:\.\d+)?)(%?)(物理加成|攻击力|攻击速度|法术加成|法术强度|护甲|魔法抗性|生命上限|暴击率|法力回复|法力值|全能吸血|伤害增幅|伤害减免)/g,
+  )) {
+    const k = map[m[3]];
+    s[k] =
+      (s[k] || 0) + Number(m[1]) / (m[2] || ["ad", "ap"].includes(k) ? 100 : 1);
+  }
+  return s;
+}
+const CREEPS = {
+  minion: {
+    id: "minion",
+    name: "近战小兵",
+    hp: 240,
+    atk: 20,
+    armor: 10,
+    mr: 0,
+    range: 1,
+    aspeed: 0.65,
+    color: "#ce8b70",
+  },
+  caster: {
+    id: "caster",
+    name: "远程小兵",
+    hp: 180,
+    atk: 24,
+    armor: 5,
+    mr: 0,
+    range: 3,
+    aspeed: 0.6,
+    color: "#978dda",
+  },
+  krug: {
+    id: "krug",
+    name: "远古魔像",
+    hp: 1250,
+    atk: 90,
+    armor: 35,
+    mr: 20,
+    range: 1,
+    aspeed: 0.55,
+    color: "#b3a17b",
+  },
+  wolf: {
+    id: "wolf",
+    name: "暗影狼",
+    hp: 700,
+    atk: 90,
+    armor: 20,
+    mr: 20,
+    range: 1,
+    aspeed: 0.95,
+    color: "#8cbac0",
+  },
+  raptor: {
+    id: "raptor",
+    name: "锋喙鸟",
+    hp: 1050,
+    atk: 105,
+    armor: 25,
+    mr: 25,
+    range: 1,
+    aspeed: 0.85,
+    color: "#c6737f",
+  },
+  dragon: {
+    id: "dragon",
+    name: "炼狱亚龙",
+    hp: 6500,
+    atk: 250,
+    armor: 50,
+    mr: 100,
+    range: 3,
+    aspeed: 0.7,
+    color: "#ef9561",
+  },
+  herald: {
+    id: "herald",
+    name: "峡谷先锋",
+    hp: 12000,
+    atk: 320,
+    armor: 70,
+    mr: 50,
+    range: 1,
+    aspeed: 0.6,
+    color: "#b986e9",
+  },
+  golem: {
+    id: "golem",
+    name: "元素魔像",
+    hp: 1800,
+    atk: 100,
+    armor: 40,
+    mr: 40,
+    range: 1,
+    aspeed: 0.6,
+    color: "#76c3ae",
+  },
+  spider: {
+    id: "spider",
+    name: "幼蛛",
+    hp: 250,
+    atk: 40,
+    armor: 10,
+    mr: 10,
+    range: 1,
+    aspeed: 0.8,
+    color: "#986c9b",
+  },
+};
+function creepWave(r) {
+  const s = stageOf(r);
+  let ids =
+    r === 1
+      ? ["minion", "caster"]
+      : r === 2
+        ? ["minion", "minion", "caster"]
+        : r === 3
+          ? ["minion", "minion", "caster", "caster"]
+          : s === 2
+            ? ["krug", "krug", "krug"]
+            : s === 3
+              ? ["wolf", "wolf", "wolf", "wolf", "wolf"]
+              : s === 4
+                ? ["raptor", "raptor", "raptor", "raptor", "raptor"]
+                : s === 5
+                  ? ["dragon"]
+                  : ["herald"];
+  return ids.map((id) => ({
+    creepId: id,
+    star: 1,
+    mult: s > 6 ? 1 + (s - 6) * 0.4 : 1,
+    items: [],
+  }));
+}
+const BOT_NAMES = [
+  "月下听风",
+  "只差一张",
+  "好运常在",
+  "银河小企鹅",
+  "一只小河灵",
+  "今天也要吃鸡",
+  "晚风与星河",
+];
+const BOT_PLANS = [
+  ["Garen", "Vayne", "Fiora", "Lux", "Leona", "Wukong", "Kayle"],
+  ["Darius", "Mordekaiser", "Poppy", "Draven", "Sejuani", "Swain", "Kayle"],
+  ["Nidalee", "Ahri", "Lulu", "Shyvana", "Gnar", "AurelionSol", "Swain"],
+  ["Khazix", "Zed", "Pyke", "Rengar", "Katarina", "Akali", "Kaisa"],
+  ["Graves", "Tristana", "TwistedFate", "Gangplank", "Jinx", "MissFortune"],
+  ["Varus", "Elise", "Morgana", "Aatrox", "Brand", "Swain"],
+  ["Braum", "Lissandra", "Ashe", "Volibear", "Sejuani", "Anivia"],
+];

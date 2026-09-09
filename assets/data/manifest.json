@@ -1,0 +1,1302 @@
+[
+  {
+    "url": "https://cdn.sanity.io/images/ccckgjf9/production/fa8e527d2dc4bc38d8222f60a51c5f581c563c3a-1250x740.png",
+    "path": "assets/arena.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/hero/head_vayne.png",
+    "path": "assets/official/heroes/Vayne.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/jk/jkimg/champion/1624x750/vayne.jpg",
+    "path": "assets/official/splash/Vayne.jpg",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/skill/vayne.png",
+    "path": "assets/official/skills/Vayne.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/hero/head_garen.png",
+    "path": "assets/official/heroes/Garen.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/jk/jkimg/champion/1624x750/garen.jpg",
+    "path": "assets/official/splash/Garen.jpg",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/skill/garen.png",
+    "path": "assets/official/skills/Garen.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/hero/head_mordekaiser.png",
+    "path": "assets/official/heroes/Mordekaiser.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/jk/jkimg/champion/1624x750/mordekaiser.jpg",
+    "path": "assets/official/splash/Mordekaiser.jpg",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/skill/mordekaiser.png",
+    "path": "assets/official/skills/Mordekaiser.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/hero/head_fiora.png",
+    "path": "assets/official/heroes/Fiora.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/jk/jkimg/champion/1624x750/fiora.jpg",
+    "path": "assets/official/splash/Fiora.jpg",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/skill/fiora.png",
+    "path": "assets/official/skills/Fiora.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/hero/head_nidalee.png",
+    "path": "assets/official/heroes/Nidalee.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/jk/jkimg/champion/1624x750/nidalee.jpg",
+    "path": "assets/official/splash/Nidalee.jpg",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/skill/nidalee.png",
+    "path": "assets/official/skills/Nidalee.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/hero/head_kassadin.png",
+    "path": "assets/official/heroes/Kassadin.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/jk/jkimg/champion/1624x750/kassadin.jpg",
+    "path": "assets/official/splash/Kassadin.jpg",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/skill/kassadin.png",
+    "path": "assets/official/skills/Kassadin.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/hero/head_tristana.png",
+    "path": "assets/official/heroes/Tristana.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/jk/jkimg/champion/1624x750/tristana.jpg",
+    "path": "assets/official/splash/Tristana.jpg",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/skill/tristana.png",
+    "path": "assets/official/skills/Tristana.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/hero/head_darius.png",
+    "path": "assets/official/heroes/Darius.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/jk/jkimg/champion/1624x750/darius.jpg",
+    "path": "assets/official/splash/Darius.jpg",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/skill/darius.png",
+    "path": "assets/official/skills/Darius.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/hero/head_khazix.png",
+    "path": "assets/official/heroes/Khazix.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/jk/jkimg/champion/1624x750/khazix.jpg",
+    "path": "assets/official/splash/Khazix.jpg",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/skill/khazix.png",
+    "path": "assets/official/skills/Khazix.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/hero/head_graves.png",
+    "path": "assets/official/heroes/Graves.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/jk/jkimg/champion/1624x750/graves.jpg",
+    "path": "assets/official/splash/Graves.jpg",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/skill/graves.png",
+    "path": "assets/official/skills/Graves.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/hero/head_elise.png",
+    "path": "assets/official/heroes/Elise.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/jk/jkimg/champion/1624x750/elise.jpg",
+    "path": "assets/official/splash/Elise.jpg",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/skill/elise.png",
+    "path": "assets/official/skills/Elise.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/hero/head_camile.png",
+    "path": "assets/official/heroes/Camile.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/jk/jkimg/champion/1624x750/camile.jpg",
+    "path": "assets/official/splash/Camile.jpg",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/skill/camile.png",
+    "path": "assets/official/skills/Camile.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/hero/head_nami.png",
+    "path": "assets/official/heroes/Nami.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/jk/jkimg/champion/1624x750/nami.jpg",
+    "path": "assets/official/splash/Nami.jpg",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/skill/nami.png",
+    "path": "assets/official/skills/Nami.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/hero/head_varus.png",
+    "path": "assets/official/heroes/Varus.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/jk/jkimg/champion/1624x750/varus.jpg",
+    "path": "assets/official/splash/Varus.jpg",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/skill/varus.png",
+    "path": "assets/official/skills/Varus.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/hero/head_ahri.png",
+    "path": "assets/official/heroes/Ahri.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/jk/jkimg/champion/1624x750/ahri.jpg",
+    "path": "assets/official/splash/Ahri.jpg",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/skill/ahri.png",
+    "path": "assets/official/skills/Ahri.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/hero/head_lulu.png",
+    "path": "assets/official/heroes/Lulu.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/jk/jkimg/champion/1624x750/lulu.jpg",
+    "path": "assets/official/splash/Lulu.jpg",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/skill/lulu.png",
+    "path": "assets/official/skills/Lulu.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/hero/head_zed.png",
+    "path": "assets/official/heroes/Zed.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/jk/jkimg/champion/1624x750/zed.jpg",
+    "path": "assets/official/splash/Zed.jpg",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/skill/zed.png",
+    "path": "assets/official/skills/Zed.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/hero/head_lissandra.png",
+    "path": "assets/official/heroes/Lissandra.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/jk/jkimg/champion/1624x750/lissandra.jpg",
+    "path": "assets/official/splash/Lissandra.jpg",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/skill/lissandra.png",
+    "path": "assets/official/skills/Lissandra.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/hero/head_braum.png",
+    "path": "assets/official/heroes/Braum.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/jk/jkimg/champion/1624x750/braum.jpg",
+    "path": "assets/official/splash/Braum.jpg",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/skill/braum.png",
+    "path": "assets/official/skills/Braum.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/hero/head_shen.png",
+    "path": "assets/official/heroes/Shen.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/jk/jkimg/champion/1624x750/shen.jpg",
+    "path": "assets/official/splash/Shen.jpg",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/skill/shen.png",
+    "path": "assets/official/skills/Shen.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/hero/head_pyke.png",
+    "path": "assets/official/heroes/Pyke.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/jk/jkimg/champion/1624x750/pyke.jpg",
+    "path": "assets/official/splash/Pyke.jpg",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/skill/pyke.png",
+    "path": "assets/official/skills/Pyke.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/hero/head_blitzcrank.png",
+    "path": "assets/official/heroes/Blitzcrank.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/jk/jkimg/champion/1624x750/blitzcrank.jpg",
+    "path": "assets/official/splash/Blitzcrank.jpg",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/skill/blitzcrank.png",
+    "path": "assets/official/skills/Blitzcrank.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/hero/head_twistedfate.png",
+    "path": "assets/official/heroes/TwistedFate.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/jk/jkimg/champion/1624x750/twistedfate.jpg",
+    "path": "assets/official/splash/TwistedFate.jpg",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/skill/twistedfate.png",
+    "path": "assets/official/skills/TwistedFate.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/hero/head_jayce.png",
+    "path": "assets/official/heroes/Jayce.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/jk/jkimg/champion/1624x750/jayce.jpg",
+    "path": "assets/official/splash/Jayce.jpg",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/skill/jayce.png",
+    "path": "assets/official/skills/Jayce.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/hero/head_lux.png",
+    "path": "assets/official/heroes/Lux.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/jk/jkimg/champion/1624x750/lux.jpg",
+    "path": "assets/official/splash/Lux.jpg",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/skill/lux.png",
+    "path": "assets/official/skills/Lux.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/hero/head_kogmaw.png",
+    "path": "assets/official/heroes/Kogmaw.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/jk/jkimg/champion/1624x750/kogmaw.jpg",
+    "path": "assets/official/splash/Kogmaw.jpg",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/skill/kogmaw.png",
+    "path": "assets/official/skills/Kogmaw.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/hero/head_poppy.png",
+    "path": "assets/official/heroes/Poppy.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/jk/jkimg/champion/1624x750/poppy.jpg",
+    "path": "assets/official/splash/Poppy.jpg",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/skill/poppy.png",
+    "path": "assets/official/skills/Poppy.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/hero/head_aatrox.png",
+    "path": "assets/official/heroes/Aatrox.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/jk/jkimg/champion/1624x750/aatrox.jpg",
+    "path": "assets/official/splash/Aatrox.jpg",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/skill/aatrox.png",
+    "path": "assets/official/skills/Aatrox.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/hero/head_katarina.png",
+    "path": "assets/official/heroes/Katarina.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/jk/jkimg/champion/1624x750/katarina.jpg",
+    "path": "assets/official/splash/Katarina.jpg",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/skill/katarina.png",
+    "path": "assets/official/skills/Katarina.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/hero/head_ashe.png",
+    "path": "assets/official/heroes/Ashe.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/jk/jkimg/champion/1624x750/ashe.jpg",
+    "path": "assets/official/splash/Ashe.jpg",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/skill/ashe.png",
+    "path": "assets/official/skills/Ashe.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/hero/head_kennen.png",
+    "path": "assets/official/heroes/Kennen.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/jk/jkimg/champion/1624x750/kennen.jpg",
+    "path": "assets/official/splash/Kennen.jpg",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/skill/kennen.png",
+    "path": "assets/official/skills/Kennen.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/hero/head_rengar.png",
+    "path": "assets/official/heroes/Rengar.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/jk/jkimg/champion/1624x750/rengar.jpg",
+    "path": "assets/official/splash/Rengar.jpg",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/skill/rengar.png",
+    "path": "assets/official/skills/Rengar.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/hero/head_morgana.png",
+    "path": "assets/official/heroes/Morgana.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/jk/jkimg/champion/1624x750/morgana.jpg",
+    "path": "assets/official/splash/Morgana.jpg",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/skill/morgana.png",
+    "path": "assets/official/skills/Morgana.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/hero/head_volibear.png",
+    "path": "assets/official/heroes/Volibear.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/jk/jkimg/champion/1624x750/volibear.jpg",
+    "path": "assets/official/splash/Volibear.jpg",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/skill/volibear.png",
+    "path": "assets/official/skills/Volibear.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/hero/head_evelynn.png",
+    "path": "assets/official/heroes/Evelynn.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/jk/jkimg/champion/1624x750/evelynn.jpg",
+    "path": "assets/official/splash/Evelynn.jpg",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/skill/evelynn.png",
+    "path": "assets/official/skills/Evelynn.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/hero/head_veigar.png",
+    "path": "assets/official/heroes/Veigar.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/jk/jkimg/champion/1624x750/veigar.jpg",
+    "path": "assets/official/splash/Veigar.jpg",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/skill/veigar.png",
+    "path": "assets/official/skills/Veigar.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/hero/head_gangplank.png",
+    "path": "assets/official/heroes/Gangplank.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/jk/jkimg/champion/1624x750/gangplank.jpg",
+    "path": "assets/official/splash/Gangplank.jpg",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/skill/gangplank.png",
+    "path": "assets/official/skills/Gangplank.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/hero/head_shyvana.png",
+    "path": "assets/official/heroes/Shyvana.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/jk/jkimg/champion/1624x750/shyvana.jpg",
+    "path": "assets/official/splash/Shyvana.jpg",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/skill/shyvana.png",
+    "path": "assets/official/skills/Shyvana.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/hero/head_vi.png",
+    "path": "assets/official/heroes/Vi.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/jk/jkimg/champion/1624x750/vi.jpg",
+    "path": "assets/official/splash/Vi.jpg",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/skill/vi.png",
+    "path": "assets/official/skills/Vi.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/hero/head_sejuani.png",
+    "path": "assets/official/heroes/Sejuani.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/jk/jkimg/champion/1624x750/sejuani.jpg",
+    "path": "assets/official/splash/Sejuani.jpg",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/skill/sejuani.png",
+    "path": "assets/official/skills/Sejuani.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/hero/head_leona.png",
+    "path": "assets/official/heroes/Leona.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/jk/jkimg/champion/1624x750/leona.jpg",
+    "path": "assets/official/splash/Leona.jpg",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/skill/leona.png",
+    "path": "assets/official/skills/Leona.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/hero/head_akali.png",
+    "path": "assets/official/heroes/Akali.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/jk/jkimg/champion/1624x750/akali.jpg",
+    "path": "assets/official/splash/Akali.jpg",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/skill/akali.png",
+    "path": "assets/official/skills/Akali.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/hero/head_chogath.png",
+    "path": "assets/official/heroes/Chogath.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/jk/jkimg/champion/1624x750/chogath.jpg",
+    "path": "assets/official/splash/Chogath.jpg",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/skill/chogath.png",
+    "path": "assets/official/skills/Chogath.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/hero/head_aurelionsol.png",
+    "path": "assets/official/heroes/AurelionSol.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/jk/jkimg/champion/1624x750/aurelionsol.jpg",
+    "path": "assets/official/splash/AurelionSol.jpg",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/skill/aurelionsol.png",
+    "path": "assets/official/skills/AurelionSol.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/hero/head_brand.png",
+    "path": "assets/official/heroes/Brand.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/jk/jkimg/champion/1624x750/brand.jpg",
+    "path": "assets/official/splash/Brand.jpg",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/skill/brand.png",
+    "path": "assets/official/skills/Brand.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/hero/head_draven.png",
+    "path": "assets/official/heroes/Draven.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/jk/jkimg/champion/1624x750/draven.jpg",
+    "path": "assets/official/splash/Draven.jpg",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/skill/draven.png",
+    "path": "assets/official/skills/Draven.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/hero/head_kindred.png",
+    "path": "assets/official/heroes/Kindred.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/jk/jkimg/champion/1624x750/kindred.jpg",
+    "path": "assets/official/splash/Kindred.jpg",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/skill/kindred.png",
+    "path": "assets/official/skills/Kindred.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/hero/head_gnar.png",
+    "path": "assets/official/heroes/Gnar.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/jk/jkimg/champion/1624x750/gnar.jpg",
+    "path": "assets/official/splash/Gnar.jpg",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/skill/gnar.png",
+    "path": "assets/official/skills/Gnar.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/hero/head_jinx.png",
+    "path": "assets/official/heroes/Jinx.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/jk/jkimg/champion/1624x750/jinx.jpg",
+    "path": "assets/official/splash/Jinx.jpg",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/skill/jinx.png",
+    "path": "assets/official/skills/Jinx.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/hero/head_wukong.png",
+    "path": "assets/official/heroes/Wukong.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/jk/jkimg/champion/1624x750/wukong.jpg",
+    "path": "assets/official/splash/Wukong.jpg",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/skill/wukong.png",
+    "path": "assets/official/skills/Wukong.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/hero/head_kayle.png",
+    "path": "assets/official/heroes/Kayle.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/jk/jkimg/champion/1624x750/kayle.jpg",
+    "path": "assets/official/splash/Kayle.jpg",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/skill/kayle.png",
+    "path": "assets/official/skills/Kayle.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/hero/head_karthus.png",
+    "path": "assets/official/heroes/Karthus.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/jk/jkimg/champion/1624x750/karthus.jpg",
+    "path": "assets/official/splash/Karthus.jpg",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/skill/karthus.png",
+    "path": "assets/official/skills/Karthus.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/hero/head_anivia.png",
+    "path": "assets/official/heroes/Anivia.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/jk/jkimg/champion/1624x750/anivia.jpg",
+    "path": "assets/official/splash/Anivia.jpg",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/skill/anivia.png",
+    "path": "assets/official/skills/Anivia.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/hero/head_yasuo.png",
+    "path": "assets/official/heroes/Yasuo.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/jk/jkimg/champion/1624x750/yasuo.jpg",
+    "path": "assets/official/splash/Yasuo.jpg",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/skill/yasuo.png",
+    "path": "assets/official/skills/Yasuo.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/hero/head_swain.png",
+    "path": "assets/official/heroes/Swain.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/jk/jkimg/champion/1624x750/swain.jpg",
+    "path": "assets/official/splash/Swain.jpg",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/skill/swain.png",
+    "path": "assets/official/skills/Swain.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/hero/head_missfortune.png",
+    "path": "assets/official/heroes/MissFortune.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/jk/jkimg/champion/1624x750/missfortune.jpg",
+    "path": "assets/official/splash/MissFortune.jpg",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/skill/missfortune.png",
+    "path": "assets/official/skills/MissFortune.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/hero/head_pantheon.png",
+    "path": "assets/official/heroes/Pantheon.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/jk/jkimg/champion/1624x750/pantheon.jpg",
+    "path": "assets/official/splash/Pantheon.jpg",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/skill/pantheon.png",
+    "path": "assets/official/skills/Pantheon.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/hero/head_kaisa.png",
+    "path": "assets/official/heroes/Kaisa.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/jk/jkimg/champion/1624x750/kaisa.jpg",
+    "path": "assets/official/splash/Kaisa.jpg",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/skill/kaisa.png",
+    "path": "assets/official/skills/Kaisa.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/trait/trait_icon_demon.png",
+    "path": "assets/official/traits/r1.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/trait/trait_icon_imperial.png",
+    "path": "assets/official/traits/r2.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/trait/trait_icon_dragon.png",
+    "path": "assets/official/traits/r3.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/trait/trait_icon_exile.png",
+    "path": "assets/official/traits/r4.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/trait/trait_icon_glacial.png",
+    "path": "assets/official/traits/r5.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/trait/trait_icon_noble.png",
+    "path": "assets/official/traits/r6.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/trait/trait_icon_phantom.png",
+    "path": "assets/official/traits/r7.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/trait/trait_icon_pirate.png",
+    "path": "assets/official/traits/r8.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/trait/trait_icon_robot.png",
+    "path": "assets/official/traits/r9.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/trait/trait_icon_void.png",
+    "path": "assets/official/traits/r10.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/trait/trait_icon_ninja.png",
+    "path": "assets/official/traits/r11.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/trait/trait_icon_yordle.png",
+    "path": "assets/official/traits/r12.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/trait/trait_icon_wild.png",
+    "path": "assets/official/traits/r13.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/trait/trait_icon_hextech.png",
+    "path": "assets/official/traits/r14.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/trait/trait_icon_assassin.png",
+    "path": "assets/official/traits/j1.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/trait/trait_icon_blademaster.png",
+    "path": "assets/official/traits/j2.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/trait/trait_icon_gunslinger.png",
+    "path": "assets/official/traits/j3.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/trait/trait_icon_brawler.png",
+    "path": "assets/official/traits/j4.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/trait/trait_icon_elementalist.png",
+    "path": "assets/official/traits/j5.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/trait/trait_icon_guardian.png",
+    "path": "assets/official/traits/j6.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/trait/trait_icon_knight.png",
+    "path": "assets/official/traits/j7.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/trait/trait_icon_ranger.png",
+    "path": "assets/official/traits/j8.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/trait/trait_icon_shapeshifter.png",
+    "path": "assets/official/traits/j9.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/trait/trait_icon_sorcerer.png",
+    "path": "assets/official/traits/j10.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/trait/ttrait_icon_mystic.png",
+    "path": "assets/official/traits/j24.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/equip/1001.png",
+    "path": "assets/official/items/1001.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/equip/1002.png",
+    "path": "assets/official/items/1002.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/equip/1003.png",
+    "path": "assets/official/items/1003.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/equip/1004.png",
+    "path": "assets/official/items/1004.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/equip/1005.png",
+    "path": "assets/official/items/1005.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/equip/1006.png",
+    "path": "assets/official/items/1006.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/equip/1007.png",
+    "path": "assets/official/items/1007.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/equip/1008.png",
+    "path": "assets/official/items/1008.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/equip/1009.png",
+    "path": "assets/official/items/1009.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/equip/frying_pan.png",
+    "path": "assets/official/items/1010.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/equip/2001.png",
+    "path": "assets/official/items/2001.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/equip/2003.png",
+    "path": "assets/official/items/2003.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/equip/2004.png",
+    "path": "assets/official/items/2004.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/equip/2005.png",
+    "path": "assets/official/items/2005.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/equip/2006.png",
+    "path": "assets/official/items/2006.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/equip/steraksgage.png",
+    "path": "assets/official/items/2007.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/equip/2009.png",
+    "path": "assets/official/items/2009.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/equip/2010.png",
+    "path": "assets/official/items/2010.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/equip/voidstaff.png",
+    "path": "assets/official/items/2011.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/equip/2052.png",
+    "path": "assets/official/items/2012.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/equip/krakensfury.png",
+    "path": "assets/official/items/2013.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/equip/nashorstooth.png",
+    "path": "assets/official/items/2014.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/equip/2016.png",
+    "path": "assets/official/items/2016.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/equip/2017.png",
+    "path": "assets/official/items/2017.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/equip/crownguard.png",
+    "path": "assets/official/items/2018.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/equip/2019.png",
+    "path": "assets/official/items/2019.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/equip/2020.png",
+    "path": "assets/official/items/2020.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/equip/2222.png",
+    "path": "assets/official/items/2022.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/equip/2023.png",
+    "path": "assets/official/items/2023.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/equip/adaptivehelm.png",
+    "path": "assets/official/items/2024.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/equip/spiritvisage.png",
+    "path": "assets/official/items/2025.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/equip/2054.png",
+    "path": "assets/official/items/2027.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/equip/2248.png",
+    "path": "assets/official/items/2028.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/equip/2329.png",
+    "path": "assets/official/items/2029.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/equip/2031.png",
+    "path": "assets/official/items/2031.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/equip/evenshroud.png",
+    "path": "assets/official/items/2032.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/equip/2034.png",
+    "path": "assets/official/items/2034.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/equip/2036.png",
+    "path": "assets/official/items/2036.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/equip/2053.png",
+    "path": "assets/official/items/2037.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/equip/2038.png",
+    "path": "assets/official/items/2038.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/equip/2039.png",
+    "path": "assets/official/items/2039.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/equip/nightharvester.png",
+    "path": "assets/official/items/2040.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/equip/2041.png",
+    "path": "assets/official/items/2041.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/equip/strikersflail.png",
+    "path": "assets/official/items/2042.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/equip/2044.png",
+    "path": "assets/official/items/2044.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/equip/2045.png",
+    "path": "assets/official/items/2045.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/equip/2046.png",
+    "path": "assets/official/items/2046.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/equip/tactician_s_shield.png",
+    "path": "assets/official/items/2047.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/equip/tactician_s_cape.png",
+    "path": "assets/official/items/2048.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/equip/2547.png",
+    "path": "assets/official/items/4108.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/equip/20151.png",
+    "path": "assets/official/items/4115.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/equip/20211.png",
+    "path": "assets/official/items/4121.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/equip/20262.png",
+    "path": "assets/official/items/4126.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/equip/20301.png",
+    "path": "assets/official/items/4130.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/equip/21481.png",
+    "path": "assets/official/items/4133.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/equip/20351.png",
+    "path": "assets/official/items/4135.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/s1/equip/21471.png",
+    "path": "assets/official/items/4147.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/common/tinyhero/t_heliujingling_1_h.png",
+    "path": "assets/official/mascots/100001.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/common/tinyhero/t_qieqishi_1_h.png",
+    "path": "assets/official/mascots/115011.png",
+    "status": "cached"
+  },
+  {
+    "url": "https://game.gtimg.cn/images/lol/act/jkzlk/common/tinyhero/t_qedirus_3_h.png",
+    "path": "assets/official/mascots/123011.png",
+    "status": "cached"
+  }
+]
