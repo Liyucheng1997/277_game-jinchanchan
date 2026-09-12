@@ -8,16 +8,17 @@
       name="description"
       content="金铲铲时空裂痕本地练习版：六角棋盘、58位英雄、装备合成与八人策略对局。"
     />
-    <title>金铲铲 · 时空裂痕 v1.2</title>
-    <link rel="stylesheet" href="style.css?v=1.2" />
+    <title>金铲铲 · 时空裂痕 v1.3</title>
+    <link rel="stylesheet" href="style.css?v=1.3" />
+    <link rel="stylesheet" href="theme.css?v=1.3" />
   </head>
   <body>
     <main id="app">
       <header class="topbar">
         <div class="brand">
-          <span class="brand-mark">♜</span>
+          <span class="brand-mark" aria-hidden="true">♜</span>
           <div>金铲铲<span class="brand-sub">时 空 裂 痕</span></div>
-          <span class="edition">本地练习 · v1.2</span>
+          <span class="edition">本地练习 · v1.3</span>
         </div>
         <div class="stage-track">
           <b id="roundLabel">1-1</b>
@@ -91,10 +92,8 @@
           >点击英雄，再点击棋盘上阵 · 也可直接拖动</span
         >
       </div>
-      <div id="sellZone" tabindex="0">
-        出售英雄 <kbd>E</kbd><span>拖动到此处</span>
-      </div>
       <footer class="shop-dock">
+        <div id="shopSellZone" hidden aria-live="polite"></div>
         <div class="economy">
           <div class="gold-line">
             <span class="gold-coin">●</span><b id="goldText">0</b
@@ -153,10 +152,11 @@
         <div id="dialogBody"></div>
       </section>
     </div>
-    <script src="js/official-data.js?v=1.2"></script>
-    <script src="js/data.js?v=1.2"></script>
-    <script src="js/combat.js?v=1.2"></script>
-    <script src="js/ui.js?v=1.2"></script>
-    <script src="js/game.js?v=1.2"></script>
+    <script src="js/official-data.js?v=1.3"></script>
+    <script src="js/data.js?v=1.3"></script>
+    <script src="js/combat.js?v=1.3"></script>
+    <script src="js/ui.js?v=1.3"></script>
+    <script src="js/audio-sources.js?v=1.3"></script>
+    <script src="js/game.js?v=1.3"></script>
   </body>
 </html>

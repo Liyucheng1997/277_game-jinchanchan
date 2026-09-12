@@ -4,10 +4,13 @@ const SAVE_KEY = "jcc-rift-v3";
 const AudioFX = {
   ctx: null,
   muted: false,
+  voices: new Set(),
+  lastCast: -Infinity,
   tone(f = 600, d = 0.08, type = "sine", vol = 0.025) {
     if (this.muted) return;
     try {
       this.ctx ??= new (window.AudioContext || window.webkitAudioContext)();
+      if (this.ctx.state === "suspended") this.ctx.resume().catch(() => {});
       const o = this.ctx.createOscillator(),
         g = this.ctx.createGain();
       o.type = type;
@@ -21,17 +24,41 @@ const AudioFX = {
     } catch {}
   },
   play(k) {
-    const table = {
-      buy: 720,
-      sell: 360,
-      refresh: 480,
-      combine: 1000,
-      cast: 840,
-      win: 1040,
-      lose: 220,
-      item: 1200,
-    };
-    this.tone(table[k] || 500, k === "combine" ? 0.4 : 0.1);
+    if (this.muted) return;
+    if (k === "cast") {
+      if (performance.now() - this.lastCast < 180) return;
+      this.lastCast = performance.now();
+    }
+    const source = window.JCC_AUDIO?.[k];
+    if (source && typeof Audio !== "undefined") {
+      const voice = new Audio(source);
+      voice.volume = k === "cast" ? 0.15 : 0.45;
+      while (this.voices.size >= 8) {
+        const old = this.voices.values().next().value;
+        old.pause(); this.voices.delete(old);
+      }
+      this.voices.add(voice);
+      voice.onended = () => this.voices.delete(voice);
+      voice.play().catch(() => { this.voices.delete(voice); this.synth(k); });
+      return;
+    }
+    this.synth(k);
+  },
+  synth(k) {
+    // Distinct, quiet cues; these are synthesized, not original game assets.
+    const notes = {
+      buy: [880, 1320], sell: [660, 440], refresh: [330, 495, 660],
+      combine: [523, 659, 784, 1047], cast: [420, 630],
+      win: [523, 659, 784, 1047, 1319], lose: [392, 330, 262],
+      item: [1047, 1319, 1568],
+    }[k] || [600];
+    notes.forEach((f, i) => setTimeout(() => this.tone(f, k === "cast" ? 0.07 : 0.18,
+      k === "sell" || k === "lose" ? "triangle" : "sine", k === "cast" ? 0.007 : 0.018), i * 65));
+  },
+  stop() {
+    for (const voice of this.voices) voice.pause();
+    this.voices.clear();
+    if (this.ctx?.state === "running") this.ctx.suspend().catch(() => {});
   },
 };
 const Game = {
@@ -41,6 +68,42 @@ const Game = {
   raf: null,
   finishing: 0,
   uid: 0,
+  canManage() {
+    return ["prep", "combat"].includes(G?.phase);
+  },
+  canEdit(loc) {
+    return this.canManage() && (G.phase === "prep" || loc?.type === "bench" || loc?.type === "item");
+  },
+  upgradeHint(id) {
+    const units = this.refs().filter((r) => r.unit.heroId === id).map((r) => r.unit);
+    const ones = units.filter((u) => u.star === 1).length;
+    const twos = units.filter((u) => u.star === 2).length;
+    const offers = G.shop.filter((h) => h === id).length;
+    return { owned: units.reduce((n, u) => n + 3 ** (u.star - 1), 0),
+      star: ones >= 2 ? (twos >= 2 ? 3 : 2) : 0,
+      shopMerge: ones + offers >= 3, pair: ones >= 2 || twos >= 2 };
+  },
+  craftPreview(a, b) {
+    if (!this.canManage() || a === b || !G.items[a] || !G.items[b]) return null;
+    return RECIPES[[G.items[a], G.items[b]].sort().join("+")] || null;
+  },
+  moveMascot(x, y) {
+    if (!this.canManage() || !Number.isFinite(x) || !Number.isFinite(y)) return;
+    G.mascot ??= { x: 202, y: 497 };
+    G.mascot.target = { x: Math.max(145, Math.min(1080, x)), y: Math.max(170, Math.min(590, y)) };
+  },
+  stepMascot(dt) {
+    if (!this.canManage()) return;
+    const m = G.mascot ??= { x: 202, y: 497 };
+    if (m.target) {
+      const dx = m.target.x - m.x, dy = m.target.y - m.y, distance = Math.hypot(dx, dy);
+      const step = Math.min(distance, dt * 300);
+      if (distance) { m.x += dx / distance * step; m.y += dy / distance * step; }
+      if (distance <= step) { delete m.target; this.save(); }
+    }
+    UI.renderMascot();
+    if (G.loot && Math.hypot(m.x - 871, m.y - 449) < 45) this.collectLoot();
+  },
   readStorage(key) {
     try {
       return localStorage.getItem(key);
@@ -122,16 +185,19 @@ const Game = {
     this.newGame();
   },
   save() {
-    if (!G || !["prep", "carousel", "over"].includes(G.phase)) return;
+    if (!G || !["prep", "combat", "carousel", "over"].includes(G.phase)) return;
     G.uid = this.uid;
     try {
-      localStorage.setItem(SAVE_KEY, JSON.stringify(G));
+      // Resume combat as preparation with the latest purchases and inventory.
+      const snapshot = G.phase === "combat" ? { ...G, phase: "prep", prepLeft: 35 } : G;
+      localStorage.setItem(SAVE_KEY, JSON.stringify(snapshot));
     } catch {}
   },
   frame(t) {
     const dt = Math.min((t - this.last) / 1000, 0.1);
     this.last = t;
     if (G && !G.paused && !UI.blocking) {
+      this.stepMascot(dt);
       if (G.phase === "prep") {
         G.prepLeft -= dt;
         if (G.prepLeft <= 0) {
@@ -244,8 +310,8 @@ const Game = {
     );
   },
   rollShop(free = false) {
-    if (!free && (G.phase !== "prep" || G.gold < 2)) {
-      if (G.phase === "prep") UI.toast("刷新需要 2 金币");
+    if (!free && (!this.canManage() || G.gold < 2)) {
+      if (this.canManage()) UI.toast("刷新需要 2 金币");
       return false;
     }
     if (!free) {
@@ -259,7 +325,7 @@ const Game = {
     return true;
   },
   buy(i) {
-    if (G.phase !== "prep") return;
+    if (!this.canManage()) return;
     const id = G.shop[i];
     if (!id) return;
     const h = HEROES[id],
@@ -317,7 +383,7 @@ const Game = {
       : base * 3 ** (u.star - 1) - (u.star - 1);
   },
   sell(loc) {
-    if (G.phase !== "prep") return;
+    if (!this.canEdit(loc)) return;
     const u = this.get(loc);
     if (!u) return;
     G.gold += this.sellPrice(u);
@@ -331,7 +397,7 @@ const Game = {
     this.save();
   },
   move(src, dst) {
-    if (G.phase !== "prep") return false;
+    if (!this.canEdit(src) || !this.canEdit(dst)) return false;
     if (!dst || !["board", "bench"].includes(dst.type)) return false;
     if (src?.type === "item") return this.equip(src.idx, dst);
     const u = this.get(src);
@@ -390,7 +456,7 @@ const Game = {
     return true;
   },
   equip(idx, loc) {
-    if (G.phase !== "prep") return false;
+    if (!this.canEdit(loc)) return false;
     const u = this.get(loc),
       id = G.items[idx];
     if (!u || !id) return false;
@@ -406,7 +472,7 @@ const Game = {
     return true;
   },
   craft(a, b) {
-    if (G.phase !== "prep" || a === b) return;
+    if (!this.canManage() || a === b) return;
     const first = G.items[a],
       second = G.items[b];
     const recipe = RECIPES[[first, second].sort().join("+")];
@@ -423,7 +489,7 @@ const Game = {
     this.save();
   },
   buyXp() {
-    if (G.phase !== "prep" || G.level >= MAX_LEVEL) return;
+    if (!this.canManage() || G.level >= MAX_LEVEL) return;
     if (G.gold < 4) {
       UI.toast("购买经验需要 4 金币");
       return;
@@ -642,6 +708,7 @@ const Game = {
     UI.selected = null;
     UI.hideTip();
     this.engine = new CombatEngine(this.boardSpecs(), this.preview());
+    this.battleTraitCounts = traitCounts(Object.values(G.board));
     this.acc = 0;
     this.finishing = 0;
     G.lastOpponent = G.opponent;
@@ -706,7 +773,7 @@ const Game = {
         if (pair.result.winner !== 0) a.hp = Math.max(0, a.hp - d);
         if (b && pair.result.winner !== 1) b.hp = Math.max(0, b.hp - d);
       }
-      const cnt = traitCounts(Object.values(G.board));
+      const cnt = this.battleTraitCounts;
       if (tierOf("r8", cnt.r8 || 0))
         G.gold += Math.floor(Math.random() * 5) + (cnt.r8 >= 5 ? 3 : 0);
     } else {
@@ -788,7 +855,7 @@ const Game = {
     else this.prepare();
   },
   collectLoot() {
-    if (!G.loot || G.phase !== "prep") return;
+    if (!G.loot || !this.canManage()) return;
     const loot = G.loot;
     G.gold += loot.gold;
     G.items.push(...loot.items);
@@ -808,13 +875,14 @@ const Game = {
   toggleMute() {
     G.muted = !G.muted;
     AudioFX.muted = G.muted;
+    if (G.muted) AudioFX.stop();
     try {
       localStorage.setItem("jcc-muted", G.muted ? "1" : "0");
     } catch {}
     UI.renderPanels();
   },
   toggleLock() {
-    if (G.phase !== "prep") return;
+    if (!this.canManage()) return;
     G.locked = !G.locked;
     UI.renderPanels();
     this.save();

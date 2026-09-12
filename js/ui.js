@@ -37,6 +37,15 @@ const UI = {
     fit();
     window.addEventListener("resize", fit);
     this.ctx = $("#effects").getContext("2d");
+    $("#arena").addEventListener("click", (e) => {
+      if (this.suppressClick || this.selected || this.blocking || e.target.closest(".unit,#lootArea,button:not(.hex)")) return;
+      this.walkToPointer(e);
+    });
+    $("#arena").addEventListener("contextmenu", (e) => {
+      if (e.target.closest(".unit,button:not(.hex)")) return;
+      e.preventDefault();
+      this.walkToPointer(e);
+    });
     for (const p of Hex.cells()) {
       const d = make("button", "hex " + (p.y >= 4 ? "player" : "enemy"));
       const pt = Hex.point(p.x, p.y);
@@ -103,11 +112,9 @@ const UI = {
       this.damageTab = true;
       this.renderTraits();
     };
-    $("#sellZone").dataset.drop = JSON.stringify({ type: "sell" });
-    $("#sellZone").onclick = () => {
-      if (this.selected && this.selected.type !== "item")
-        Game.sell(this.selected);
-    };
+    $(".shop-dock").addEventListener("click", (e) => {
+      if (this.suppressClick) { e.preventDefault(); e.stopImmediatePropagation(); }
+    }, true);
     document.addEventListener("pointermove", (e) => this.pointerMove(e));
     document.addEventListener("pointerup", (e) => this.pointerUp(e));
     document.addEventListener("pointercancel", () => this.cancelDrag());
@@ -151,12 +158,15 @@ const UI = {
   },
   render() {
     if (!G) return;
+    this.cancelDrag();
     this.hideTip();
     this.renderPanels();
     this.renderShop();
     this.renderBench();
     this.renderItems();
     if (G.phase !== "combat") this.renderBoard();
+    this.renderLoot();
+    this.renderMascot();
     this.renderCarousel();
     this.renderEnd();
     this.syncSelection();
@@ -206,7 +216,9 @@ const UI = {
     $("#btnPause").textContent = G.paused ? "▶" : "Ⅱ";
     $("#btnPause").title = G.paused ? "继续计时" : "暂停";
     $("#btnSpeed").textContent = G.speed + "×";
-    for (const id of ["btnXp", "btnRefresh", "btnFight", "btnAuto", "btnLock"])
+    for (const id of ["btnXp", "btnRefresh", "btnLock"])
+      $("#" + id).disabled = !Game.canManage();
+    for (const id of ["btnFight", "btnAuto"])
       $("#" + id).disabled = G.phase !== "prep";
     if (G.level === 9) $("#btnXp").disabled = true;
     $("#btnFight").innerHTML =
@@ -364,16 +376,15 @@ const UI = {
         );
         continue;
       }
-      const h = HEROES[id],
-        owned = Game.refs()
-          .filter((r) => r.unit.heroId === id)
-          .reduce((n, r) => n + 3 ** (r.unit.star - 1), 0);
-      const d = make("button", "shop-card" + (G.gold < h.cost ? " poor" : ""));
+      const h = HEROES[id], hint = Game.upgradeHint(id), owned = hint.owned;
+      const d = make("button", "shop-card" + (G.gold < h.cost ? " poor" : "") + (hint.star ? " can-upgrade" : owned ? " is-owned" : ""));
       d.style.setProperty("--cost", COST_COLORS[h.cost]);
       d.setAttribute("aria-label", `购买 ${h.name} ${h.cost}金币`);
-      d.disabled = G.phase !== "prep";
+      d.disabled = !Game.canManage();
       d.innerHTML = `<img class="shop-art" src="${h.splash}" draggable="false" alt="${h.name}"><div class="shop-traits">${h.traits.map((t) => `<span><img src="${TRAITS[t].icon}">${TRAITS[t].name}</span>`).join("")}</div><div class="shop-name">${h.name}</div><div class="shop-cost">◉ ${h.cost}</div>${owned ? `<span class="shop-owned">已拥有 ${owned}</span>` : ""}`;
       d.onclick = () => Game.buy(i);
+      if (hint.star || hint.shopMerge) d.append(make("span", "upgrade-badge", hint.star ? `买入升 ${hint.star} 星` : "同店凑齐可升星"));
+      d.setAttribute("aria-label", `购买 ${h.name} ${h.cost}金币${hint.star ? `，买入升${hint.star}星` : owned ? `，已拥有${owned}张` : ""}`);
       this.tip(d, () => this.heroTip(h, 1));
       shop.append(d);
     }
@@ -396,6 +407,10 @@ const UI = {
     d.setAttribute("aria-label", h.name);
     d.tabIndex = loc ? 0 : -1;
     d.innerHTML = `<div class="unit-base"></div>${u.heroId ? `<img class="unit-portrait" src="${h.portrait}" draggable="false" alt="${h.name}">` : this.monsterArt(u.creepId)}<div class="unit-stars">${u.heroId ? "★".repeat(u.star || 1) : ""}</div><div class="unit-bars"><div class="unit-health"></div><div class="unit-mana"></div></div><div class="unit-name">${h.name}</div><div class="unit-equips">${(u.items || []).map(itemImage).join("")}</div>`;
+    if (loc && u.star < 3 && Game.refs().filter((r) => r.unit.heroId === u.heroId && r.unit.star === u.star).length >= 2) {
+      d.classList.add("has-pair");
+      d.append(make("span", "unit-pair", "对子"));
+    }
     if (loc) {
       d.dataset.drop = JSON.stringify(loc);
       d.dataset.loc = JSON.stringify(loc);
@@ -403,7 +418,7 @@ const UI = {
       d.onclick = (e) => {
         e.stopPropagation();
         if (this.suppressClick) return;
-        if (G.phase !== "prep") return;
+        if (!Game.canEdit(loc)) return;
         if (this.selected) {
           if (
             this.selected.type === "item" ||
@@ -427,7 +442,7 @@ const UI = {
         e.preventDefault();
         this.heroDetail(u.heroId, u.star);
       };
-      this.tip(d, () => this.heroTip(h, u.star, u.items));
+      this.tip(d, () => this.equipPreviewTip(this.selected, loc) || this.heroTip(h, u.star, u.items));
     } else if (u.heroId) this.tip(d, () => this.heroTip(h, u.star, u.items));
     return d;
   },
@@ -467,12 +482,26 @@ const UI = {
         layer.append(d);
       }
     }
-    $("#mascot").innerHTML =
-      `<img src="${OFFICIAL.mascots[0]}" alt="小小英雄"><span class="mascot-name">你 · ${G.hp}</span>`;
+    this.renderMascot();
+    this.renderLoot();
+  },
+  walkToPointer(e) {
+    const rect = $("#arena").getBoundingClientRect();
+    Game.moveMascot((e.clientX - rect.left) / this.scale, (e.clientY - rect.top) / this.scale);
+  },
+  renderMascot() {
+    const node = $("#mascot"), m = G.mascot || { x: 202, y: 497 };
+    if (!node.firstChild) node.innerHTML = `<img src="${OFFICIAL.mascots[0]}" alt="小小英雄"><span class="mascot-name"></span>`;
+    node.querySelector(".mascot-name").textContent = `你 · ${G.hp}`;
+    node.style.left = m.x - 34 + "px";
+    node.style.top = m.y - 68 + "px";
+    node.classList.toggle("walking", !!m.target);
+  },
+  renderLoot() {
     $("#lootArea").innerHTML = G.loot
-      ? '<button class="loot-orb" id="collectOrb" aria-label="拾取战利品">✦</button><span class="loot-label">点击拾取战利品</span>'
+      ? '<button class="loot-orb" id="collectOrb" aria-label="走过去拾取金币和装备">✦</button><span class="loot-label">点击前往 · 靠近拾取金币和装备</span>'
       : "";
-    if (G.loot) $("#collectOrb").onclick = () => Game.collectLoot();
+    if (G.loot) $("#collectOrb").onclick = () => Game.moveMascot(871, 449);
   },
   renderItems() {
     const bar = $("#itemBar");
@@ -484,7 +513,7 @@ const UI = {
       d.dataset.loc = JSON.stringify({ type: "item", idx: i });
       d.onpointerdown = (e) => this.pointerDown(e, { type: "item", idx: i }, d);
       d.onclick = () => {
-        if (this.suppressClick || G.phase !== "prep") return;
+        if (this.suppressClick || !Game.canManage()) return;
         if (this.selected?.type === "item" && this.selected.idx !== i) {
           Game.craft(this.selected.idx, i);
           return;
@@ -495,14 +524,14 @@ const UI = {
             : { type: "item", idx: i };
         this.syncSelection();
       };
-      this.tip(d, () => this.itemTip(id));
+      this.tip(d, () => this.equipPreviewTip(this.selected, { type: "inventory", idx: i }) || this.itemTip(id));
       bar.append(d);
     });
     for (let i = G.items.length; i < 8; i++)
       bar.append(
         make("div", "item-slot empty", i === G.items.length ? "+" : ""),
       );
-    bar.append(make("div", "equipment-hint", "拖给英雄装备 · 小件可相互合成"));
+    bar.append(make("div", "equipment-hint", "拖动悬停预览 · 松手合成 · Esc 取消"));
     $("#rewardsInfo").textContent = G.rewards.length
       ? `奖励暂存 ${G.rewards.length} 位英雄 · 腾出备战席后领取`
       : "";
@@ -530,11 +559,11 @@ const UI = {
       this.selected?.type === "item"
         ? "选择英雄装备，或选择另一个小件合成"
         : selecting
-          ? "点击目标格移动 · E 出售 · Esc 取消"
-          : "点击英雄，再点击棋盘上阵 · 也可直接拖动";
+          ? "点击目标格移动 · E 或拖到招募栏出售 · Esc 取消"
+          : G.phase === "combat" ? "战斗中可买牌、D 刷新、F 升级 · 升星下场生效" : "点击空地移动小精灵 · 靠近法球拾取 · 拖动英雄上阵";
   },
   pointerDown(e, src, node) {
-    if (e.button !== 0 || G.phase !== "prep") return;
+    if (e.button !== 0 || !Game.canEdit(src)) return;
     this.drag = {
       src,
       node,
@@ -562,6 +591,13 @@ const UI = {
             : u
               ? HEROES[u.heroId].portrait
               : null;
+      if (u && d.src.type !== "item") {
+        const sell = $("#shopSellZone");
+        sell.innerHTML = `<span class="sell-drag-title">松手出售英雄</span><strong>${esc(HEROES[u.heroId].name)} <span>${"★".repeat(u.star)}</span></strong><b>＋${Game.sellPrice(u)} 金币</b><small>${u.items.length ? "装备将返还装备区 · " : ""}移出招募栏或按 Esc 取消</small>`;
+        sell.hidden = false;
+        $(".shop-dock").classList.add("selling");
+        $(".shop-dock").dataset.drop = JSON.stringify({ type: "sell" });
+      }
       d.ghost = make("div", "pointer-ghost", img ? `<img src="${img}">` : "");
       document.body.append(d.ghost);
     }
@@ -576,6 +612,10 @@ const UI = {
         .elementFromPoint(e.clientX, e.clientY)
         ?.closest("[data-drop]")
         ?.classList.add("drop");
+      const target = document.elementFromPoint(e.clientX, e.clientY)?.closest("[data-drop]");
+      const preview = target && this.equipPreviewTip(d.src, JSON.parse(target.dataset.drop));
+      if (preview) this.showTip(e, preview);
+      else this.hideTip();
     }
   },
   pointerUp(e) {
@@ -598,6 +638,12 @@ const UI = {
     this.cancelDrag();
   },
   cancelDrag() {
+    this.hideTip();
+    const dock = $(".shop-dock");
+    dock.classList.remove("selling");
+    delete dock.dataset.drop;
+    $("#shopSellZone").hidden = true;
+    $("#shopSellZone").innerHTML = "";
     if (this.drag) {
       this.drag.node.classList.remove("drag-origin");
       this.drag.ghost?.remove();
@@ -646,17 +692,36 @@ const UI = {
     const i = ITEMS[id];
     return `<div class="tip-title">${itemImage(id)}<div>${i.name}<small>${i.recipe.length ? "合成装备" : "基础装备"}</small></div></div><p style="color:#e2cc91">${esc(i.basic)}</p><p>${esc(i.desc)}</p>${i.recipe.length ? `<div class="tip-recipe">${itemImage(i.recipe[0])} + ${itemImage(i.recipe[1])}</div>` : '<div class="tip-note">拖给英雄佩戴，或与另一件基础装备合成。</div>'}`;
   },
+  equipPreviewTip(src, dst) {
+    if (src?.type !== "item" || !Game.canManage()) return null;
+    const id = G.items[src.idx];
+    if (!id) return null;
+    if (dst.type === "inventory") {
+      if (src.idx === dst.idx) return null;
+      const result = Game.craftPreview(src.idx, dst.idx);
+      return result ? `<div class="craft-preview-title">合成预览 · 松手或点击合成</div>${this.itemTip(result)}` : '<div class="craft-preview-title">这两件装备不能合成</div>';
+    }
+    if (!["board", "bench"].includes(dst.type)) return null;
+    if (!Game.canEdit(dst)) return '<div class="craft-preview-title">战斗中请在备战席装备，或等待战斗结束</div>';
+    const unit = Game.get(dst);
+    if (!unit) return null;
+    const copy = { ...unit, items: [...unit.items] };
+    if (!Game.equipOn(copy, id, false)) return '<div class="craft-preview-title">无法装备：装备格已满或羁绊重复</div>';
+    const changed = copy.items.find((item, i) => unit.items[i] !== item) || id;
+    return `<div class="craft-preview-title">${changed !== id ? "合成预览" : "装备预览"} · ${HEROES[unit.heroId].name}</div>${this.itemTip(changed)}`;
+  },
   tip(node, html) {
     node.addEventListener("mouseenter", (e) => {
       if (this.drag?.active) return;
-      this.showTip(e, html());
+      this.showTip(e, html(), node);
     });
     node.addEventListener("mousemove", (e) => this.moveTip(e));
     node.addEventListener("mouseleave", () => this.hideTip());
     node.addEventListener("pointerdown", () => this.hideTip());
   },
-  showTip(e, html) {
+  showTip(e, html, anchor = null) {
     const tip = $("#tooltip");
+    this.tipAnchor = anchor;
     tip.innerHTML = html;
     tip.style.display = "block";
     this.moveTip(e);
@@ -665,12 +730,29 @@ const UI = {
     const tip = $("#tooltip");
     if (tip.style.display !== "block") return;
     const r = tip.getBoundingClientRect();
+    const anchor = this.tipAnchor;
+    const panel = anchor?.closest(".left-sidebar, .right-sidebar");
+    const gap = 12;
+    let x = e.clientX + 18, y = e.clientY + 18;
+    if (panel) {
+      const p = panel.getBoundingClientRect(), a = anchor.getBoundingClientRect();
+      x = panel.classList.contains("left-sidebar") ? p.right + gap : p.left - r.width - gap;
+      y = a.top;
+    } else if (anchor?.closest(".shop-dock")) {
+      const a = anchor.getBoundingClientRect();
+      x = a.left;
+      y = a.top - r.height - gap;
+    } else {
+      if (x + r.width > innerWidth - 8) x = e.clientX - r.width - 18;
+      if (y + r.height > innerHeight - 8) y = e.clientY - r.height - 18;
+    }
     tip.style.left =
-      Math.max(6, Math.min(innerWidth - r.width - 8, e.clientX + 18)) + "px";
+      Math.max(6, Math.min(innerWidth - r.width - 8, x)) + "px";
     tip.style.top =
-      Math.max(6, Math.min(innerHeight - r.height - 8, e.clientY + 18)) + "px";
+      Math.max(6, Math.min(innerHeight - r.height - 8, y)) + "px";
   },
   hideTip() {
+    this.tipAnchor = null;
     $("#tooltip").style.display = "none";
   },
   toast(text) {
@@ -702,7 +784,7 @@ const UI = {
   guide() {
     this.dialog(
       "玩法指南",
-      `<div class="guide-grid"><article><h3>01 · 招募与站位</h3><p>商店招募英雄，拖到棋盘下半区上阵。也可以先点英雄，再点目标格。前排承伤、后排输出；上阵人数由等级决定。三个相同星级英雄自动合成更高星级。</p></article><article><h3>02 · 经营经济</h3><p>刷新商店消耗 2 金币，购买 4 经验消耗 4 金币。每存 10 金币获得 1 利息，上限 5。八名弈士共享有限卡池，出售返还英雄和装备。</p></article><article><h3>03 · 装备与羁绊</h3><p>将装备拖给英雄穿戴，每名英雄最多三件。两件小装备自动合成大装备，也可以在装备区点击两个小件合成。相同英雄只计一次羁绊，纹章可增加羁绊。</p></article><article><h3>04 · 对局与选秀</h3><p>35 秒备战结束后自动开战，也可提前准备就绪。选秀中低血量弈士先选。野怪掉落法球，点击收取金币和装备。生命归零被淘汰，最后的幸存者获胜。</p></article></div><div class="guide-note"><b>快捷键：</b> D 刷新商店 · F 购买经验 · E 出售选中英雄 · 空格开战 · Esc 关闭面板<br>这是本地练习版，对手为电脑。英雄、羁绊、配方及图标来自<a href="https://jcc.qq.com/#/hero" target="_blank" rel="noreferrer">金铲铲官网</a>的时空裂痕数据快照。当前采用平面棋盘和肖像棋子，野怪数值、部分技能时序与装备细节为本地模拟；未包含原作三维模型、骨骼动画和联网服务。</div>`,
+      `<div class="guide-grid"><article><h3>01 · 招募与站位</h3><p>商店招募英雄，拖到棋盘下半区上阵。也可以先点英雄，再点目标格。前排承伤、后排输出；上阵人数由等级决定。三个相同星级英雄自动合成更高星级。</p></article><article><h3>02 · 经营经济</h3><p>刷新商店消耗 2 金币，购买 4 经验消耗 4 金币。每存 10 金币获得 1 利息，上限 5。八名弈士共享有限卡池，出售返还英雄和装备。战斗中也可买牌、刷牌、买经验和整理备战席；升星下场生效。</p></article><article><h3>03 · 装备与羁绊</h3><p>将装备拖给英雄穿戴，每名英雄最多三件。两件小装备自动合成大装备，也可以在装备区点击两个小件合成。拖动悬停可预览成装和效果，松手合成，Esc 取消。相同英雄只计一次羁绊，纹章可增加羁绊。</p></article><article><h3>04 · 对局与选秀</h3><p>35 秒备战结束后自动开战，也可提前准备就绪。选秀中低血量弈士先选。野怪掉落法球，点击让小精灵前往，靠近自动拾取金币和装备；也可点击空地或右键地面移动。生命归零被淘汰，最后的幸存者获胜。</p></article></div><div class="guide-note"><b>快捷键：</b> D 刷新商店 · F 购买经验 · E 出售选中英雄 · 空格开战 · Esc 关闭面板<br>这是本地练习版，对手为电脑。英雄、羁绊、配方及图标来自<a href="https://jcc.qq.com/#/hero" target="_blank" rel="noreferrer">金铲铲官网</a>的时空裂痕数据快照。当前采用平面棋盘和肖像棋子，野怪数值、部分技能时序与装备细节为本地模拟；未包含原作三维模型、骨骼动画和联网服务。</div>`,
     );
   },
   catalog() {
@@ -794,14 +876,16 @@ const UI = {
     return `${itemImage(id)}<div><h3>${i.name}</h3><p>${esc(i.basic)}<br>${esc(i.desc)}</p></div>`;
   },
   beginCombat(engine) {
+    this.cancelDrag();
     $("#app").classList.add("combat-active");
     $("#unitLayer").innerHTML = "";
     this.combatEls.clear();
     this.fx = [];
-    $("#lootArea").innerHTML = "";
+    this.renderLoot();
     this.renderBench();
     this.renderShop();
     this.renderItems();
+    this.syncSelection();
     for (const u of engine.units) this.addCombatUnit(u);
     const banner = $("#battleBanner");
     banner.textContent = "战斗开始";

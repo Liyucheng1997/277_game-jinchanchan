@@ -74,12 +74,12 @@ test("full bench purchases can merge without deleting another unit", () => {
  if(G.bench.length!==9||Game.refs().length!==8||!Game.refs().some(r=>r.unit.heroId==='Garen'&&r.unit.star===2))throw Error('full bench merge failed');assertPool();
  `);
 });
-test("equipment combines in a full third slot; invalid destination and combat purchases rejected", () => {
+test("equipment combines in a full third slot; invalid destination and combat board changes rejected", () => {
   run(`
  Game.newGame();G.muted=true;Game.chooseCarousel(G.carousel.findIndex(c=>!c.taken));const ref=Game.refs()[0],u=ref.unit;u.items=['2001','2034','1002'];G.items=['1003'];
  if(!Game.equip(0,ref.loc)||!u.items.includes('2010')||u.items.length!==3)throw Error('full slot crafting failed');
  const before=JSON.stringify(G.board);if(Game.move(ref.loc,{type:'board',key:'3,1'})||JSON.stringify(G.board)!==before)throw Error('enemy deployment allowed');
- G.phase='combat';const gold=G.gold,shop=G.shop.slice();Game.rollShop();Game.buy(0);Game.buyXp();if(G.gold!==gold||JSON.stringify(shop)!==JSON.stringify(G.shop))throw Error('combat economy mutated');
+ G.phase='combat';if(Game.move(ref.loc,{type:'bench',idx:0}))throw Error('combat board moved');
  `);
 });
 test("extended match progression resolves AI fights, carousel and player elimination", () => {
@@ -101,14 +101,14 @@ test("ready resumes paused combat and an empty board resolves instead of stallin
  }`);
 });
 
-test("uncollected PvE loot accumulates and can only be claimed once during preparation", () => {
+test("uncollected PvE loot accumulates and can only be claimed once including combat", () => {
   run(`{
  Game.newGame();G.muted=true;Game.chooseCarousel(G.carousel.findIndex(c=>!c.taken));
  const resolveWave=()=>{Game.startBattle();for(const u of Game.engine.units.filter(u=>u.side===1)){u.hp=0;u.alive=false;}Game.engine.step();Game.finishBattle();};
  resolveWave();const old=structuredClone(G.loot);resolveWave();
  if(G.loot.gold<=old.gold||G.loot.items.length<=old.items.length)throw Error('old loot overwritten');
  const loot=structuredClone(G.loot),gold=G.gold,items=G.items.length;
- G.phase='combat';Game.collectLoot();if(G.gold!==gold||!G.loot)throw Error('combat loot mutation');G.phase='prep';
+ G.phase='combat';
  Game.collectLoot();Game.collectLoot();if(G.gold!==gold+loot.gold||G.items.length!==items+loot.items.length||G.loot)throw Error('loot duplication or loss');
  }`);
 });
@@ -144,5 +144,62 @@ test("storage denial does not prevent starting a game or toggling audio", () => 
  localStorage.getItem=()=>{throw Error('storage denied');};localStorage.setItem=()=>{throw Error('storage denied');};
  try{Game.load();Game.toggleMute();Game.chooseCarousel(G.carousel.findIndex(c=>!c.taken));if(G.phase!=='prep')throw Error('game unavailable');}
  finally{localStorage.getItem=originalGet;localStorage.setItem=originalSet;}
+ }`);
+});
+
+test('combat economy, merges and saves preserve pool and active combat snapshots', () => {
+ run(`{
+ const get=localStorage.getItem,set=localStorage.setItem,storage=new Map();
+ localStorage.getItem=k=>storage.get(k)||null;localStorage.setItem=(k,v)=>storage.set(k,v);
+ try {
+ Game.newGame();Game.chooseCarousel(G.carousel.findIndex(c=>!c.taken));
+ for(const r of Game.refs())Game.sell(r.loc);G.gold=100;
+ G.shop.filter(Boolean).forEach(id=>G.pool[id]++);G.shop=['Garen',null,null,null,null];G.pool.Garen--;
+ G.board={'3,4':Game.unit('Garen')};G.bench[0]=Game.unit('Garen');G.pool.Garen-=2;
+ Game.startBattle();const battle=JSON.stringify(Game.engine.units),gold=G.gold;
+ if(Game.upgradeHint('Garen').star!==2)throw Error('missing two-star hint');
+ Game.buy(0);if(G.gold!==gold-1||!Game.refs().some(r=>r.unit.star===2))throw Error('combat buy/merge');
+ if(JSON.stringify(Game.engine.units)!==battle)throw Error('active fight mutated');assertPool();
+ Game.buyXp();if(G.gold!==gold-5)throw Error('combat xp');
+ Game.rollShop();if(G.gold!==gold-7)throw Error('combat refresh');assertPool();
+ Game.toggleLock();if(!G.locked)throw Error('combat lock');
+ const savedGold=G.gold,savedRoster=JSON.stringify(Game.refs().map(r=>r.unit));Game.engine=null;Game.load();
+ if(G.phase!=='prep'||!G.paused||G.gold!==savedGold||JSON.stringify(Game.refs().map(r=>r.unit))!==savedRoster)throw Error('combat purchases lost on reload');assertPool();
+ }finally{localStorage.getItem=get;localStorage.setItem=set;}
+ }`);
+});
+
+test('upgrade hints distinguish owned stars, pairs, chain upgrades and shared shop offers', () => {
+ run(`{
+ Game.newGame();G.phase='prep';G.board={};G.bench=Array(9).fill(null);G.shop=['Garen',null,null,null,null];
+ G.bench[0]={...Game.unit('Garen'),star:2};
+ if(Game.upgradeHint('Garen').star)throw Error('a two-star is not two one-stars');
+ G.bench[1]={...Game.unit('Garen'),star:2};G.bench[2]=Game.unit('Garen');G.bench[3]=Game.unit('Garen');
+ if(Game.upgradeHint('Garen').star!==3)throw Error('chain upgrade missing');
+ G.bench=Array(9).fill(null);G.shop=['Garen','Garen','Garen',null,null];
+ if(!Game.upgradeHint('Garen').shopMerge||Game.upgradeHint('Garen').star)throw Error('shop hint wrong');
+ }`);
+});
+
+test('craft preview does not consume items and works in combat; bench remains editable', () => {
+ run(`{
+ Game.newGame();G.phase='combat';G.board={};G.bench=Array(9).fill(null);G.items=['1002','1003'];
+ const before=JSON.stringify(G.items);if(Game.craftPreview(0,1)!=='2010'||JSON.stringify(G.items)!==before||Game.craftPreview(0,0))throw Error('preview mutation');
+ Game.craft(0,1);if(G.items.length!==1||G.items[0]!=='2010')throw Error('combat craft');
+ G.bench[0]=Game.unit('Garen');if(!Game.move({type:'bench',idx:0},{type:'bench',idx:1}))throw Error('bench locked');
+ if(!Game.equip(0,{type:'bench',idx:1}))throw Error('bench equip');
+ const gold=G.gold;Game.sell({type:'bench',idx:1});if(G.gold!==gold+1||G.items[0]!=='2010')throw Error('bench sell');
+ }`);
+});
+
+test('little legend moves gradually, picks up nearby loot once and clamps to arena', () => {
+ run(`{
+ Game.newGame();G.phase='prep';G.mascot={x:202,y:497};G.loot={gold:4,items:['1002']};const gold=G.gold;
+ Game.moveMascot(871,449);Game.stepMascot(.1);if(G.mascot.x<=202||G.gold!==gold)throw Error('movement or premature pickup');
+ for(let i=0;i<40;i++)Game.stepMascot(.1);
+ if(G.loot||G.gold!==gold+4||!G.items.includes('1002'))throw Error('pickup failed');
+ Game.stepMascot(1);if(G.gold!==gold+4)throw Error('duplicate loot');
+ Game.moveMascot(-999,9999);for(let i=0;i<40;i++)Game.stepMascot(.1);
+ if(G.mascot.x!==145||G.mascot.y!==590)throw Error('arena boundary');
  }`);
 });

@@ -701,13 +701,14 @@ kbd {
   top: 498px;
   width: 680px;
   height: 74px;
-  display: flex;
-  align-items: flex-end;
+  display: grid;
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+  align-items: end;
   gap: 3px;
   z-index: 6;
 }
 .bench-slot {
-  width: 73px;
+  width: 100%;
   height: 65px;
   position: relative;
   cursor: pointer;
@@ -813,9 +814,11 @@ kbd {
   position: absolute;
   left: 0;
   right: 0;
-  top: 3px;
+  top: auto;
+  bottom: -11px;
   color: #efd58b;
-  font-size: 10px;
+  font-size: 20px;
+  line-height: 22px;
   letter-spacing: 1px;
   text-align: center;
   text-shadow: 0 1px 4px #000;
@@ -824,7 +827,7 @@ kbd {
 .unit-name {
   position: absolute;
   left: 50%;
-  bottom: -13px;
+  bottom: -25px;
   transform: translateX(-50%);
   font-size: 9px;
   color: #dfebcf;
@@ -896,21 +899,24 @@ kbd {
   justify-content: center;
   gap: 1px;
   position: absolute;
-  bottom: 2px;
+  bottom: auto;
+  top: -29px;
   left: 0;
   right: 0;
   z-index: 4;
 }
 .unit-equips img {
-  width: 14px;
-  height: 14px;
+  width: 20px;
+  height: 20px;
   border: 1px solid #bcaa64;
   border-radius: 2px;
 }
 .bench-slot .unit {
   left: 50%;
-  top: 52px;
-  transform: translate(-50%, -75%) scale(0.86);
+  top: 50%;
+  /* Anchor the center of the 19px ground shadow, rather than the portrait. */
+  transform-origin: 50% calc(100% - 9.5px);
+  transform: translate(-50%, calc(-100% + 9.5px)) scale(0.86);
 }
 .bench-slot .unit-name {
   display: none;
@@ -1040,33 +1046,6 @@ kbd {
   color: #f2d286;
   margin-top: 8px;
   transform: translateX(-10px);
-}
-#sellZone {
-  position: absolute;
-  left: 32px;
-  top: 651px;
-  z-index: 13;
-  width: 176px;
-  border: 1px dashed #b08c6359;
-  border-radius: 3px;
-  font-size: 12px;
-  color: #b4a484;
-  padding: 11px;
-}
-#sellZone kbd {
-  float: right;
-}
-#sellZone span {
-  display: block;
-  font-size: 9px;
-  color: #788a7f;
-  margin-top: 5px;
-}
-.dragging #sellZone,
-#sellZone.drop {
-  background: #6c3937;
-  border-color: #c49775;
-  color: #f3d6b1;
 }
 .shop-dock {
   position: absolute;
@@ -2027,3 +2006,16 @@ button:active {
   box-shadow: 0 4px 16px #071c25aa;
   border: 2px solid #87c4b377;
 }
+/* Readable upgrade cues and direct little-legend control. */
+.shop-card.is-owned { box-shadow: inset 0 0 0 2px #78bfb0; }
+.shop-card.can-upgrade { box-shadow: inset 0 0 0 3px #ffe49a, 0 0 17px #efca6870; }
+.upgrade-badge { position: absolute; top: 7px; right: 7px; z-index: 3; padding: 5px 8px; border-radius: 4px; background: #f1d17e; color: #30260f; font-size: 13px; font-weight: 800; }
+.shop-card .shop-owned { font-size: 12px; background: #153b32; color: #d7fff0; }
+.unit.has-pair .unit-portrait { border-color: #ffe49a; }
+.unit-pair { position: absolute; right: -19px; top: 22px; padding: 2px 4px; background: #423616; border: 1px solid #ebcb77; border-radius: 3px; font-size: 10px; color: #ffe49a; z-index: 4; }
+.craft-preview-title { color: #ffe49a; font-weight: 700; border-bottom: 1px solid #e3c77955; padding-bottom: 8px; margin-bottom: 10px; }
+#mascot { pointer-events: none; z-index: 9; }
+#mascot.walking img { animation: mascot-walk .28s ease-in-out infinite alternate; }
+@keyframes mascot-walk { to { transform: translateY(-7px) rotate(6deg); } }
+.bench-slot .unit-stars { bottom: -8px; }
+.shop-card:has(.upgrade-badge) .shop-owned { top: 40px; }
