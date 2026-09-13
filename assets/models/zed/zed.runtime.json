@@ -1,0 +1,15 @@
+{
+  "sourceSha256": "d3be6dc895f9302deaf5a85ef0c69275bd2b1c23d0622c99439455291c0c8b0c",
+  "runtimeSha256": "0842fd57210999af3a30c43e830e77465dcb03a086029b41146fd67607a47a58",
+  "sourceBytes": 7879320,
+  "runtimeBytes": 2036440,
+  "clips": [
+    "Zed_attack1.anm",
+    "Death",
+    "Zed_idle1.anm",
+    "Zed_run.anm",
+    "Zed_spell1.anm",
+    "Zed_attack2.anm"
+  ],
+  "processing": "Retain gameplay animations; repack referenced buffer views. Geometry, bones, textures unchanged."
+}

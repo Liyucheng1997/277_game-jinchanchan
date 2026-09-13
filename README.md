@@ -1,10 +1,10 @@
-# 金铲铲 · 时空裂痕本地练习版 v1.4
+# 金铲铲 · 时空裂痕本地练习版 v1.5
 
 基于原有网页小游戏重构的单机自走棋。使用经典「时空裂痕」官网数据快照，包含 58 位英雄、25 个羁绊、57 件装备，与 7 名电脑弈士进行淘汰对局。
 
-[在线游玩](https://liyucheng1997.github.io/277_game-jinchanchan/) · [v1.4 版本发布](https://github.com/Liyucheng1997/277_game-jinchanchan/releases/tag/v1.4) · [更新记录](CHANGELOG.md)
+[在线游玩](https://liyucheng1997.github.io/277_game-jinchanchan/) · [v1.5 版本发布](https://github.com/Liyucheng1997/277_game-jinchanchan/releases/tag/v1.5) · [更新记录](CHANGELOG.md)
 
-网站通过现有 GitHub Pages 从 `main` 分支根目录部署。发行版本使用 `v1.4` 标签；存档格式版本仍为 3，两者独立。
+网站通过现有 GitHub Pages 从 `main` 分支根目录部署。发行版本使用 `v1.5` 标签；存档格式版本仍为 3，两者独立。
 
 本版修复属性详情的装备与羁绊加成展示，按背景石板校准九格备战席，并增加同羁绊英雄与持有状态查询。
 
@@ -59,11 +59,37 @@ python -m http.server 8765 --bind 127.0.0.1
 - 部分野怪保留旧版 AI 图片或符号占位；默认音效仍为 WebAudio 合成，现已区分购买、出售、刷新、升星、装备、胜负提示，降低施法音量并限制密集重复播放。
 - 原版音效尚未接入：本次未找到可核实的独立原版音效文件。支持将已取得的 MP3、WAV 或 OGG 放入 `assets/audio/`，在 `js/audio-sources.js` 为 buy、sell、refresh、combine、cast、win、lose、item 配置相对路径，即优先播放对应文件；播放失败自动回退合成音。
 
-**当前是可完整进行对局的二维本地练习版，尚未达到原作严格一比一复刻。** 棋子使用肖像而非原作三维模型，没有骨骼动画、原版语音、联网匹配；野怪数值、AI 经营、战斗配对、部分技能时序与装备细节是本地近似实现。官网描述可用于查阅，但不代表每项战斗细节已逐帧还原。继续提升原作视觉还原度需要对应的英雄、野怪模型与动作资源。
+**当前是可完整进行对局的本地练习版，尚未达到原作严格一比一复刻。** 58 位英雄已接入 LoL 默认模型与骨骼动画。没有原版语音、联网匹配；野怪数值、AI 经营、战斗配对、部分技能时序与装备细节是本地近似实现。官网描述可用于查阅，但不代表每项战斗细节已逐帧还原。
+
+### 全英雄 3D 试战
+
+启动本地 HTTP 服务后，打开 `http://127.0.0.1:8765/?demo=heroes`。可选择任意英雄单独试战，或使用混合阵容、「换一组」「待机展示」。`?demo=garen` 保留盖伦入口。试战不读取或写入正常对局存档，返回正常对局恢复原存档。
+
+正常棋盘和备战席支持全部 58 位英雄。统一提亮角色并轻微降低对比度，改善肤色和暗部可见度。接入待机、移动、普攻、死亡以及可用的施法动作；被动技能英雄沿用普攻。豹女、蜘蛛、龙女、纳尔、乌鸦支持第二形态；杰斯和金克丝支持对应武器动作切换；蜘蛛召唤物、露露皮克斯、千珏狼灵也有模型。缺少独立变身过渡动作时直接切换形态，乌鸦死亡使用人形动作。伙伴的位置是本地近似布局。
+
+66 份模型（58 位英雄与 8 份附属资源）经过动画裁剪、缓冲区去重，由约 412.6 MiB 减至 106.2 MiB；保留的模型、骨骼、贴图、动画数值保持原数据。运行时按需加载，最多 3 个并行下载；跨回合保留 3 份未使用模型缓存，其余释放。模型加载失败或 WebGL 不可用时显示原头像；`?models=off` 可关闭 3D。双击 HTML 的 `file://` 模式保留二维玩法，3D 请通过 HTTP 服务访问。
+
+资源来自 [Khada 模型查看器](https://modelviewer.lol/)，属于 Riot Games。每份资源的来源和原始校验值保存在对应目录的 `source.json` 或形态 JSON；裁剪后的校验值、动画列表在 `*.runtime.json`。动作配置见 `assets/models/manifest.json`。
+
+**这些是 LoL 模型候选，尚未逐个匹配金铲铲时空裂痕的历史模型版本。原版技能粒子、材质效果和音效尚未还原。** 现有本地技能特效继续使用，盖伦光环也是临时效果。模型渲染和动作可运行不等于原作一比一复刻。
+
+重建流程（Python 3、Node.js）：
+
+```powershell
+python scripts/import-models.py
+python scripts/import-model-forms.py
+python scripts/configure-models.py
+python scripts/optimize-models.py
+npm install --prefix tmp/3d three@0.180.0 esbuild@0.25.9 --no-audit --no-fund
+node scripts/build-3d.cjs
+python tests/models.test.py
+```
+
+原始完整下载保留在 `tmp/models-original/`，不作为运行时资源。Three.js 已本地打包，许可证为 `js/vendor/THREE-LICENSE.txt`；运行时不依赖外部 CDN。浏览器集成检查脚本 `scripts/verify-models.js` 在独立试战页运行，检查 58 位英雄关键动作的多个采样时刻、模型非空、形态切换和暂停，并生成模型总览。
 
 ## 开发与验证
 
-纯 HTML、CSS、原生 JavaScript，无前端运行时依赖。
+HTML、CSS、原生 JavaScript，3D 显示使用本地打包的 Three.js。
 
 | 文件                       | 用途                                     |
 | -------------------------- | ---------------------------------------- |

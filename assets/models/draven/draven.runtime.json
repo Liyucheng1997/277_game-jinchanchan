@@ -1,0 +1,15 @@
+{
+  "sourceSha256": "17342e1226eee3e99fbf4b1039473929f8c3b0ea07e506ff92f5937c3b627fc3",
+  "runtimeSha256": "cdc806ab95026662cba80ca966c6aec3026965462af3a4841b0328a78c960b5e",
+  "sourceBytes": 4665900,
+  "runtimeBytes": 1604128,
+  "clips": [
+    "Attack1",
+    "Attack2",
+    "Death",
+    "draven_spell1_spin_left_right.anm",
+    "draven_run.anm",
+    "Idle1"
+  ],
+  "processing": "Retain gameplay animations; repack referenced buffer views. Geometry, bones, textures unchanged."
+}

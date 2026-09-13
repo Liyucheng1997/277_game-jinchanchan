@@ -1,0 +1,43 @@
+{
+  "hero": "Katarina",
+  "name": "帝国之刃",
+  "sourcePage": "https://modelviewer.lol/model-viewer?id=55000",
+  "downloadUrl": "https://cdn.modelviewer.lol/lol/models/katarina/55000/model.glb",
+  "retrieved": "2026-09-13",
+  "bytes": 2329348,
+  "sha256": "87fd6ff254aa4670e414fc005e4fff4604b94623491a9545905ab0b7a3118262",
+  "bones": 81,
+  "animations": [
+    "Channel",
+    "Channel_Wndup",
+    "Dance",
+    "Death",
+    "Idle1",
+    "Laugh",
+    "Taunt",
+    "Run1",
+    "Spell1",
+    "Spell2",
+    "Attack1",
+    "Attack2",
+    "Crit",
+    "Joke",
+    "Recall",
+    "Run2",
+    "Spell3",
+    "Spell4",
+    "Recall_Winddown",
+    "Idle2",
+    "katarina_spell3.anm",
+    "katarina_crit.anm",
+    "Spell2_Throw",
+    "RunHaste",
+    "Idle_In"
+  ],
+  "meshes": [
+    ""
+  ],
+  "extensions": [],
+  "owner": "Riot Games",
+  "scope": "LoL base candidate; JCC version match and original VFX not verified"
+}

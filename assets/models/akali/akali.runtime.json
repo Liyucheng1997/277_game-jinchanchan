@@ -1,0 +1,15 @@
+{
+  "sourceSha256": "7e4a8e3bef8075f11322ada5e5c9fa580abf62a9f688d2da909118560b441142",
+  "runtimeSha256": "ea7ab9c8496451567230b6743b8b6ba4725d95bf13213375d0ad9991caa52ca4",
+  "sourceBytes": 20045144,
+  "runtimeBytes": 2926364,
+  "clips": [
+    "Attack1",
+    "Attack2",
+    "Death",
+    "Idle1",
+    "Akali_Base_Run.anm",
+    "Spell1_0"
+  ],
+  "processing": "Retain gameplay animations; repack referenced buffer views. Geometry, bones, textures unchanged."
+}

@@ -1,0 +1,39 @@
+{
+  "hero": "Nidalee",
+  "name": "西斗之飒",
+  "sourcePage": "https://modelviewer.lol/model-viewer?id=76000",
+  "downloadUrl": "https://cdn.modelviewer.lol/lol/models/nidalee/76000/model.glb",
+  "retrieved": "2026-09-13",
+  "bytes": 4049736,
+  "sha256": "0c3843ee33c45d9206b6f572e93c87bbe56041332da773a405b458664e6c9e88",
+  "bones": 75,
+  "animations": [
+    "Attack1",
+    "Attack2",
+    "Channel",
+    "Channel_Wndup",
+    "Crit",
+    "Dance",
+    "Death",
+    "nidalee_2012_idle1.anm",
+    "nidalee_2012_idle2.anm",
+    "Nidalee_2012_laugh.anm",
+    "Run",
+    "Run2",
+    "Spell1",
+    "Spell2",
+    "Spell3",
+    "Spell4",
+    "Nidalee_2012_taunt.anm",
+    "nidalee_2012_joke.anm",
+    "nidalee_2012_recall.anm",
+    "nidalee_2012_recall_idle.anm",
+    "nidalee_2012_idle_enter.anm"
+  ],
+  "meshes": [
+    ""
+  ],
+  "extensions": [],
+  "owner": "Riot Games",
+  "scope": "LoL base candidate; JCC version match and original VFX not verified"
+}

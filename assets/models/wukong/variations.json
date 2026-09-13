@@ -1,0 +1,15 @@
+{
+  "lang": "en-US",
+  "chromas": [],
+  "forms": [],
+  "additionalAliases": [],
+  "id": "62000",
+  "group": "lol",
+  "alias": "monkeyking",
+  "name": "Wukong",
+  "baseForm": [
+    0
+  ],
+  "desktopContainerId": "skin-options-desktop",
+  "mobileContainerId": "skin-options-mobile"
+}

@@ -1,0 +1,19 @@
+{
+  "sourceSha256": "9bc4a4352cbe687921fc7c8e0432ba54403214c1e80f235321f5f2a3759d1a87",
+  "runtimeSha256": "6c6427b78f7d3d654962e0377e18f82dc9aaf77db78310d5aef5baf59b4c979c",
+  "sourceBytes": 6765504,
+  "runtimeBytes": 2219004,
+  "clips": [
+    "Death",
+    "Idle1_Base",
+    "Run_Base",
+    "Jinx_Rlauncher_run.anm",
+    "Attack1",
+    "Attack2",
+    "Jinx_Rlauncher_idle1.anm",
+    "Jinx_Rlauncher_attack1.anm",
+    "Jinx_Rlauncher_attack2.anm",
+    "Jinx_Rlauncher_death.anm"
+  ],
+  "processing": "Retain gameplay animations; repack referenced buffer views. Geometry, bones, textures unchanged."
+}

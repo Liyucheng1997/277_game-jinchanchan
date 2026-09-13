@@ -1,0 +1,14 @@
+{
+  "sourceSha256": "3b827f4b80646b8b465ee64341e63152d31ff836c7cc248f56864a70b8004a4c",
+  "runtimeSha256": "dba52399ac7c474b6199d54a90593b322185c9f410874f804d1c4436e2e3ecff",
+  "sourceBytes": 3292000,
+  "runtimeBytes": 1485840,
+  "clips": [
+    "Run",
+    "EliseSpider_Idle1.anm",
+    "EliseSpider_Attack1.anm",
+    "EliseSpider_Attack2.anm",
+    "Death"
+  ],
+  "processing": "Retain gameplay animations; repack referenced buffer views. Geometry, bones, textures unchanged."
+}

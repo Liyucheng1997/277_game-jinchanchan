@@ -1,0 +1,15 @@
+{
+  "sourceSha256": "525990f8106121760794f6c2cd69f848f2de90ccc3c4fd2ca9048c22f38f8950",
+  "runtimeSha256": "cd706643aacfc3c1883dced129873972f609fadbc56dfad7f7567d3bf4c2dae8",
+  "sourceBytes": 8215812,
+  "runtimeBytes": 2546400,
+  "clips": [
+    "Run",
+    "Attack1",
+    "Lulu_idle1.anm",
+    "Attack2",
+    "Spell4",
+    "Death"
+  ],
+  "processing": "Retain gameplay animations; repack referenced buffer views. Geometry, bones, textures unchanged."
+}

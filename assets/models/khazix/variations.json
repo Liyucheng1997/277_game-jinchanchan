@@ -1,0 +1,15 @@
+{
+  "lang": "en-US",
+  "chromas": [],
+  "forms": [],
+  "additionalAliases": [],
+  "id": "121000",
+  "group": "lol",
+  "alias": "khazix",
+  "name": "Kha'Zix",
+  "baseForm": [
+    0
+  ],
+  "desktopContainerId": "skin-options-desktop",
+  "mobileContainerId": "skin-options-mobile"
+}

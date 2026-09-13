@@ -222,6 +222,7 @@ const Game = {
         }
       }
     }
+    window.Characters3D?.frame(dt);
     this.raf = requestAnimationFrame((tt) => this.frame(tt));
   },
   unit(heroId, items = []) {

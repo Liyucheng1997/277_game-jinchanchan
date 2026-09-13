@@ -1,0 +1,15 @@
+{
+  "sourceSha256": "01d77865111c7c6b452699d7c67a200793851c09d2f071b794ab08cd9eb6759e",
+  "runtimeSha256": "3e32ee4f9710552fc21a3da5dbca590d6c66b1588e6fb253313a13f3faa316fd",
+  "sourceBytes": 5080892,
+  "runtimeBytes": 1417496,
+  "clips": [
+    "Attack1",
+    "Attack2",
+    "Death",
+    "twistedfate_2012_idle1.anm",
+    "Spell2",
+    "Run1"
+  ],
+  "processing": "Retain gameplay animations; repack referenced buffer views. Geometry, bones, textures unchanged."
+}

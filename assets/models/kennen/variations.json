@@ -1,0 +1,15 @@
+{
+  "lang": "en-US",
+  "chromas": [],
+  "forms": [],
+  "additionalAliases": [],
+  "id": "85000",
+  "group": "lol",
+  "alias": "kennen",
+  "name": "Kennen",
+  "baseForm": [
+    0
+  ],
+  "desktopContainerId": "skin-options-desktop",
+  "mobileContainerId": "skin-options-mobile"
+}

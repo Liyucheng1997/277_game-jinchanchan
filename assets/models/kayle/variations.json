@@ -1,0 +1,51 @@
+{
+  "lang": "en-US",
+  "chromas": [],
+  "forms": [
+    {
+      "name": "Transcendent",
+      "meshs": [
+        "Kayle_Base_Body_Mat",
+        "level11",
+        "wings_up",
+        "wings_bot",
+        "wings_mid",
+        "sword_blade",
+        "sword_hilt"
+      ],
+      "textures": [
+        [
+          "Kayle_Base_Body_Mat",
+          "kayle_base_lvl11_tx_cm.png"
+        ]
+      ],
+      "animation": "IdlePassive",
+      "icon": "kayle_lvl11"
+    }
+  ],
+  "additionalAliases": [
+    {
+      "id": "2015_kayle",
+      "name": "Kayle (Pre-VGU)"
+    },
+    {
+      "id": "2009_kayle",
+      "name": "Kayle (2009)"
+    }
+  ],
+  "id": "10000",
+  "group": "lol",
+  "alias": "kayle",
+  "name": "Kayle",
+  "baseForm": {
+    "animation": "Idle1_Base",
+    "textures": [
+      [
+        "Kayle_Base_Body_Mat",
+        "level1.png"
+      ]
+    ]
+  },
+  "desktopContainerId": "skin-options-desktop",
+  "mobileContainerId": "skin-options-mobile"
+}

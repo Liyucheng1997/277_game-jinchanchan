@@ -1,0 +1,40 @@
+{
+  "hero": "Darius",
+  "name": "帝国之手",
+  "sourcePage": "https://modelviewer.lol/model-viewer?id=122000",
+  "downloadUrl": "https://cdn.modelviewer.lol/lol/models/darius/122000/model.glb",
+  "retrieved": "2026-09-13",
+  "bytes": 6549836,
+  "sha256": "3e2ecbf3e65bd9f883e3bdff30d3c451808c2569d530e5c5c8bffd9ae8c9ea59",
+  "bones": 89,
+  "animations": [
+    "Channel_Wndup",
+    "Crit",
+    "Death",
+    "Idle1",
+    "Joke",
+    "Laugh",
+    "Run",
+    "Spell1",
+    "Spell2",
+    "Spell3",
+    "Spell4",
+    "Taunt",
+    "Recall",
+    "Idle2",
+    "Spell2_Idle",
+    "Spell2_Run",
+    "Attack1",
+    "Attack2",
+    "Dance",
+    "Channel",
+    "Darius_Spell1_IN.anm",
+    "BasePose"
+  ],
+  "meshes": [
+    ""
+  ],
+  "extensions": [],
+  "owner": "Riot Games",
+  "scope": "LoL base candidate; JCC version match and original VFX not verified"
+}

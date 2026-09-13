@@ -1,0 +1,37 @@
+{
+  "hero": "Anivia",
+  "name": "灵鸟毕方",
+  "sourcePage": "https://modelviewer.lol/model-viewer?id=34000",
+  "downloadUrl": "https://cdn.modelviewer.lol/lol/models/anivia/34000/model.glb",
+  "retrieved": "2026-09-13",
+  "bytes": 1812580,
+  "sha256": "7ffca47fbade9b92f23292de2eda437f8d836592261a2ed1cb44c4e2dcfa6372",
+  "bones": 62,
+  "animations": [
+    "Attack1",
+    "Attack2",
+    "Crit",
+    "Channel",
+    "Channel_Wndup",
+    "Death",
+    "Idle1",
+    "Idle2",
+    "Idle3",
+    "Joke",
+    "Run",
+    "Spell1",
+    "Spell2",
+    "Spell3",
+    "Spell4",
+    "Taunt",
+    "Laugh",
+    "Dance_Base",
+    "Dance_Transition"
+  ],
+  "meshes": [
+    ""
+  ],
+  "extensions": [],
+  "owner": "Riot Games",
+  "scope": "LoL base candidate; JCC version match and original VFX not verified"
+}

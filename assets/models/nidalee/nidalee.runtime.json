@@ -1,0 +1,15 @@
+{
+  "sourceSha256": "0c3843ee33c45d9206b6f572e93c87bbe56041332da773a405b458664e6c9e88",
+  "runtimeSha256": "9ec5cd35b65ef7b6f9c18cac63dca4a279c6cf43e1bb1dc66b6d4a0cafb5848d",
+  "sourceBytes": 4049736,
+  "runtimeBytes": 1853548,
+  "clips": [
+    "Attack1",
+    "Attack2",
+    "Death",
+    "nidalee_2012_idle1.anm",
+    "Run",
+    "Spell4"
+  ],
+  "processing": "Retain gameplay animations; repack referenced buffer views. Geometry, bones, textures unchanged."
+}

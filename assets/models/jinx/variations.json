@@ -1,0 +1,20 @@
+{
+  "lang": "en-US",
+  "chromas": [],
+  "forms": [],
+  "additionalAliases": [
+    {
+      "id": "jinxmine",
+      "name": "Chomper"
+    }
+  ],
+  "id": "222000",
+  "group": "lol",
+  "alias": "jinx",
+  "name": "Jinx",
+  "baseForm": [
+    0
+  ],
+  "desktopContainerId": "skin-options-desktop",
+  "mobileContainerId": "skin-options-mobile"
+}

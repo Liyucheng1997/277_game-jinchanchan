@@ -1,0 +1,873 @@
+{
+  "Vayne": {
+    "path": "assets/models/vayne/vayne.glb",
+    "clips": {
+      "idle": "Idle1",
+      "run": "Run",
+      "attack": "Attack1",
+      "attack2": "Attack2",
+      "death": "Death",
+      "cast": null
+    },
+    "height": 2,
+    "name": "天罚弩神"
+  },
+  "Garen": {
+    "path": "assets/models/garen/garen.glb",
+    "clips": {
+      "idle": "Idle1_Base",
+      "run": "Run_Base",
+      "attack": "Attack1",
+      "attack2": "Attack2",
+      "death": "Death",
+      "cast": "Spell3_0",
+      "channel": "Spell3_0"
+    },
+    "height": 2,
+    "name": "不屈战神"
+  },
+  "Mordekaiser": {
+    "path": "assets/models/mordekaiser/mordekaiser.glb",
+    "clips": {
+      "idle": "Idle.anm",
+      "run": "Walk",
+      "attack": "AutoAttack1.anm",
+      "attack2": "Attack2",
+      "death": "Death",
+      "cast": "Spell1"
+    },
+    "height": 2.2,
+    "name": "钢铁领主"
+  },
+  "Fiora": {
+    "path": "assets/models/fiora/fiora.glb",
+    "clips": {
+      "idle": "Fiora_Idle1.anm",
+      "run": "RunWalk",
+      "attack": "Attack1",
+      "attack2": "Attack2",
+      "death": "Death",
+      "cast": "Spell2"
+    },
+    "height": 2,
+    "name": "华剑战姬"
+  },
+  "Nidalee": {
+    "path": "assets/models/nidalee/nidalee.glb",
+    "clips": {
+      "idle": "nidalee_2012_idle1.anm",
+      "run": "Run",
+      "attack": "Attack1",
+      "attack2": "Attack2",
+      "death": "Death",
+      "cast": "Spell4"
+    },
+    "form": {
+      "path": "assets/models/nidalee/nidaleecougar.glb",
+      "clips": {
+        "idle": "NidaleeCougar_Idle1.anm",
+        "run": "Run",
+        "attack": "Attack1",
+        "attack2": "Attack2",
+        "death": "Death",
+        "cast": "Spell4"
+      }
+    },
+    "height": 2,
+    "name": "西斗之飒"
+  },
+  "Kassadin": {
+    "path": "assets/models/kassadin/kassadin.glb",
+    "clips": {
+      "idle": "Idle1",
+      "run": "Run_Base",
+      "attack": "Attack1",
+      "attack2": "Attack2",
+      "death": "Death",
+      "cast": null
+    },
+    "height": 2,
+    "name": "虚空行者"
+  },
+  "Tristana": {
+    "path": "assets/models/tristana/tristana.glb",
+    "clips": {
+      "idle": "Idle1_Base",
+      "run": "Run",
+      "attack": "Attack1",
+      "attack2": "Attack2",
+      "death": "Death",
+      "cast": "Spell3"
+    },
+    "height": 1.65,
+    "name": "麦林炮手"
+  },
+  "Darius": {
+    "path": "assets/models/darius/darius.glb",
+    "clips": {
+      "idle": "Idle1",
+      "run": "Run",
+      "attack": "Attack1",
+      "attack2": "Attack2",
+      "death": "Death",
+      "cast": "Spell1"
+    },
+    "height": 2,
+    "name": "帝国之手"
+  },
+  "Khazix": {
+    "path": "assets/models/khazix/khazix.glb",
+    "clips": {
+      "idle": "Khazix_idle1.anm",
+      "run": "Khazix_run.anm",
+      "attack": "Attack1",
+      "attack2": "Attack2",
+      "death": "Death",
+      "cast": "Spell1"
+    },
+    "height": 2,
+    "name": "虚空掠夺者"
+  },
+  "Graves": {
+    "path": "assets/models/graves/graves.glb",
+    "clips": {
+      "idle": "Idle1",
+      "run": "Run",
+      "attack": "graves_attack1.anm",
+      "attack2": "graves_attack1.anm",
+      "death": "Death",
+      "cast": null
+    },
+    "height": 2,
+    "name": "无畏重炮"
+  },
+  "Elise": {
+    "path": "assets/models/elise/elise.glb",
+    "clips": {
+      "idle": "Elise_idle1.anm",
+      "run": "Run",
+      "attack": "Attack1",
+      "attack2": "Attack2",
+      "death": "Death",
+      "cast": null
+    },
+    "form": {
+      "path": "assets/models/elise/elisespider.glb",
+      "clips": {
+        "idle": "EliseSpider_Idle1.anm",
+        "run": "Run_Base",
+        "attack": "Attack1",
+        "attack2": "Attack2",
+        "death": "Death",
+        "cast": null
+      }
+    },
+    "height": 2,
+    "name": "蛛后"
+  },
+  "Camile": {
+    "path": "assets/models/camile/camile.glb",
+    "clips": {
+      "idle": "Idle_Loop",
+      "run": "Run_Base",
+      "attack": "Attack1",
+      "attack2": "Attack2",
+      "death": "Death",
+      "cast": "Spell4"
+    },
+    "height": 2,
+    "name": "青钢影"
+  },
+  "Nami": {
+    "path": "assets/models/nami/nami.glb",
+    "clips": {
+      "idle": "Idle1_Base",
+      "run": "Nami_run.anm",
+      "attack": "Nami_attack1.anm",
+      "attack2": "Nami_attack2.anm",
+      "death": "Death",
+      "cast": "Nami_spell2.anm"
+    },
+    "height": 2,
+    "name": "激流之鳞"
+  },
+  "Varus": {
+    "path": "assets/models/varus/varus.glb",
+    "clips": {
+      "idle": "varus_idle1.anm",
+      "run": "Run",
+      "attack": "Attack1",
+      "attack2": "Attack2",
+      "death": "Death",
+      "cast": "Spell1_Fire"
+    },
+    "height": 2,
+    "name": "迅箭"
+  },
+  "Ahri": {
+    "path": "assets/models/ahri/ahri.glb",
+    "clips": {
+      "idle": "Idle1",
+      "run": "Run",
+      "attack": "Attack1",
+      "attack2": "Attack2",
+      "death": "Death",
+      "cast": "Spell1"
+    },
+    "height": 2,
+    "name": "青丘灵狐"
+  },
+  "Lulu": {
+    "path": "assets/models/lulu/lulu.glb",
+    "clips": {
+      "idle": "Lulu_idle1.anm",
+      "run": "Run",
+      "attack": "Attack1",
+      "attack2": "Attack2",
+      "death": "Death",
+      "cast": "Spell4"
+    },
+    "companion": {
+      "path": "assets/models/lulu/lulufaerie.glb",
+      "clips": {
+        "idle": "Idle1",
+        "run": "Run",
+        "attack": "Attack1",
+        "attack2": "Attack2",
+        "death": null,
+        "cast": null
+      }
+    },
+    "height": 1.65,
+    "name": "仙灵女巫"
+  },
+  "Zed": {
+    "path": "assets/models/zed/zed.glb",
+    "clips": {
+      "idle": "Zed_idle1.anm",
+      "run": "Zed_run.anm",
+      "attack": "Zed_attack1.anm",
+      "attack2": "Zed_attack2.anm",
+      "death": "Death",
+      "cast": "Zed_spell1.anm"
+    },
+    "height": 2,
+    "name": "影疾忍"
+  },
+  "Lissandra": {
+    "path": "assets/models/lissandra/lissandra.glb",
+    "clips": {
+      "idle": "Idle1_Base",
+      "run": "Run_Base",
+      "attack": "Attack1",
+      "attack2": "Attack2",
+      "death": "Death_Base",
+      "cast": "Spell4"
+    },
+    "selfCast": "Spell4_Self",
+    "height": 2,
+    "name": "霜卫首领"
+  },
+  "Braum": {
+    "path": "assets/models/braum/braum.glb",
+    "clips": {
+      "idle": "Idle_01_Loop",
+      "run": "Run",
+      "attack": "Attack1",
+      "attack2": "Attack2",
+      "death": "Death",
+      "cast": "Spell3_Idle0"
+    },
+    "guard": "Spell3_Idle0",
+    "height": 2,
+    "name": "北地之盾"
+  },
+  "Shen": {
+    "path": "assets/models/shen/shen.glb",
+    "clips": {
+      "idle": "Idle1",
+      "run": "Run1",
+      "attack": "Attack1",
+      "attack2": "Attack2",
+      "death": "Death",
+      "cast": "Spell2"
+    },
+    "height": 2,
+    "name": "御界守"
+  },
+  "Pyke": {
+    "path": "assets/models/pyke/pyke.glb",
+    "clips": {
+      "idle": "Idle1",
+      "run": "Run_Base",
+      "attack": "Attack1",
+      "attack2": "Attack2",
+      "death": "Death",
+      "cast": "Spell3"
+    },
+    "height": 2,
+    "name": "海上幽影"
+  },
+  "Blitzcrank": {
+    "path": "assets/models/blitzcrank/blitzcrank.glb",
+    "clips": {
+      "idle": "Idle1",
+      "run": "Run",
+      "attack": "Attack1",
+      "attack2": "Attack2",
+      "death": "Death",
+      "cast": "Spell1"
+    },
+    "height": 2,
+    "name": "蒸汽机器人"
+  },
+  "TwistedFate": {
+    "path": "assets/models/twistedfate/twistedfate.glb",
+    "clips": {
+      "idle": "twistedfate_2012_idle1.anm",
+      "run": "Run1",
+      "attack": "Attack1",
+      "attack2": "Attack2",
+      "death": "Death",
+      "cast": "Spell2"
+    },
+    "height": 2,
+    "name": "命运之手"
+  },
+  "Jayce": {
+    "path": "assets/models/jayce/jayce.glb",
+    "clips": {
+      "idle": "jayce_melee_idle1.anm",
+      "run": "Run",
+      "attack": "Attack1",
+      "attack2": "Attack2",
+      "death": "Death",
+      "cast": "Spell3"
+    },
+    "ranged": {
+      "idle": "jayce_ranged_idle1.anm",
+      "run": "Ranged_Run",
+      "attack": "Ranged_Attack1",
+      "attack2": "Ranged_Attack2"
+    },
+    "height": 2,
+    "name": "未来守护者"
+  },
+  "Lux": {
+    "path": "assets/models/lux/lux.glb",
+    "clips": {
+      "idle": "Idle1",
+      "run": "Run",
+      "attack": "Attack1",
+      "attack2": "Attack2",
+      "death": "Death",
+      "cast": "Spell2"
+    },
+    "height": 2,
+    "name": "光元素使"
+  },
+  "Kogmaw": {
+    "path": "assets/models/kogmaw/kogmaw.glb",
+    "clips": {
+      "idle": "Idle1",
+      "run": "Run",
+      "attack": "Attack1",
+      "attack2": "Attack2",
+      "death": "Death",
+      "cast": "kogmaw_spell2.anm"
+    },
+    "height": 2,
+    "name": "虚空重炮"
+  },
+  "Poppy": {
+    "path": "assets/models/poppy/poppy.glb",
+    "clips": {
+      "idle": "Idle1_Base",
+      "run": "Run_Base",
+      "attack": "Attack1",
+      "attack2": "Attack2",
+      "death": "Death",
+      "cast": "Spell1"
+    },
+    "height": 1.65,
+    "name": "圣锤之毅"
+  },
+  "Aatrox": {
+    "path": "assets/models/aatrox/aatrox.glb",
+    "clips": {
+      "idle": "Idle1",
+      "run": "Run_Base",
+      "attack": "Attack1",
+      "attack2": "Attack2",
+      "death": "Death",
+      "cast": "Aatrox_ground_Q3.anm"
+    },
+    "height": 2.2,
+    "name": "轩辕"
+  },
+  "Katarina": {
+    "path": "assets/models/katarina/katarina.glb",
+    "clips": {
+      "idle": "Idle1",
+      "run": "Run1",
+      "attack": "Attack1",
+      "attack2": "Attack2",
+      "death": "Death",
+      "cast": "Spell4",
+      "channel": "Spell4"
+    },
+    "height": 2,
+    "name": "帝国之刃"
+  },
+  "Ashe": {
+    "path": "assets/models/ashe/ashe.glb",
+    "clips": {
+      "idle": "Idle1",
+      "run": "Run",
+      "attack": "Attack1",
+      "attack2": "Attack2",
+      "death": "Death",
+      "cast": "Spell1"
+    },
+    "height": 2,
+    "name": "臻冰之箭"
+  },
+  "Kennen": {
+    "path": "assets/models/kennen/kennen.glb",
+    "clips": {
+      "idle": "Idle1",
+      "run": "Run",
+      "attack": "Attack1",
+      "attack2": "Attack2",
+      "death": "Death",
+      "cast": "Spell4"
+    },
+    "height": 1.65,
+    "name": "天雷引"
+  },
+  "Rengar": {
+    "path": "assets/models/rengar/rengar.glb",
+    "clips": {
+      "idle": "Idle1_Base",
+      "run": "Run",
+      "attack": "Attack1",
+      "attack2": "Attack2",
+      "death": "Death",
+      "cast": "Spell1"
+    },
+    "height": 2,
+    "name": "北境之傲"
+  },
+  "Morgana": {
+    "path": "assets/models/morgana/morgana.glb",
+    "clips": {
+      "idle": "Idle1",
+      "run": "morgana_run",
+      "attack": "Attack1",
+      "attack2": "Attack2",
+      "death": "Death",
+      "cast": "Spell4"
+    },
+    "height": 2,
+    "name": "苍鸾"
+  },
+  "Volibear": {
+    "path": "assets/models/volibear/volibear.glb",
+    "clips": {
+      "idle": "Idle_Base",
+      "run": "Run_Base",
+      "attack": "Attack1",
+      "attack2": "Attack2",
+      "death": "Death",
+      "cast": "Spell1"
+    },
+    "height": 2.2,
+    "name": "雷霆之主"
+  },
+  "Evelynn": {
+    "path": "assets/models/evelynn/evelynn.glb",
+    "clips": {
+      "idle": "Idle1_Base",
+      "run": "Run_Base",
+      "attack": "Attack1",
+      "attack2": "Attack2",
+      "death": "Death",
+      "cast": "Spell4"
+    },
+    "height": 2,
+    "name": "隐娘"
+  },
+  "Veigar": {
+    "path": "assets/models/veigar/veigar.glb",
+    "clips": {
+      "idle": "Idle1",
+      "run": "Run",
+      "attack": "Attack1",
+      "attack2": "Attack2",
+      "death": "Death",
+      "cast": "Spell4"
+    },
+    "height": 1.65,
+    "name": "邪恶小法师"
+  },
+  "Gangplank": {
+    "path": "assets/models/gangplank/gangplank.glb",
+    "clips": {
+      "idle": "Idle1",
+      "run": "Run_Base",
+      "attack": "Attack1",
+      "attack2": "Attack2",
+      "death": "Death",
+      "cast": "Gangplank_spell3.anm"
+    },
+    "height": 2,
+    "name": "地火霸主"
+  },
+  "Shyvana": {
+    "path": "assets/models/shyvana/shyvana.glb",
+    "clips": {
+      "idle": "IdleBase",
+      "run": "Run_Base",
+      "attack": "Attack1_Start",
+      "attack2": "Attack2_Start",
+      "death": "Death",
+      "cast": null
+    },
+    "form": {
+      "path": "assets/models/shyvana/shyvanadragon.glb",
+      "clips": {
+        "idle": "Idle1",
+        "run": "Run1",
+        "attack": "Attack1_A",
+        "attack2": "Attack2_A",
+        "death": "Death",
+        "cast": "Spell4"
+      }
+    },
+    "attackFollow": {
+      "Attack1_Start": "Attack1_Hit",
+      "Attack2_Start": "Attack2_Hit"
+    },
+    "height": 2,
+    "name": "逆鳞战姬"
+  },
+  "Vi": {
+    "path": "assets/models/vi/vi.glb",
+    "clips": {
+      "idle": "Idle1_Base",
+      "run": "Vi_Run1.anm",
+      "attack": "Attack1",
+      "attack2": "Attack2",
+      "death": "Death",
+      "cast": "Spell4"
+    },
+    "height": 2,
+    "name": "皮城执法官"
+  },
+  "Sejuani": {
+    "path": "assets/models/sejuani/sejuani.glb",
+    "clips": {
+      "idle": "Idle1",
+      "run": "Run_Base",
+      "attack": "Attack1",
+      "attack2": "Attack2",
+      "death": "Death",
+      "cast": "Spell4"
+    },
+    "height": 2.2,
+    "name": "冰川骑士"
+  },
+  "Leona": {
+    "path": "assets/models/leona/leona.glb",
+    "clips": {
+      "idle": "Idle1",
+      "run": "Run",
+      "attack": "Attack1",
+      "attack2": "Attack2",
+      "death": "Death",
+      "cast": "Spell4"
+    },
+    "height": 2,
+    "name": "曙光神将"
+  },
+  "Akali": {
+    "path": "assets/models/akali/akali.glb",
+    "clips": {
+      "idle": "Idle1",
+      "run": "Akali_Base_Run.anm",
+      "attack": "Attack1",
+      "attack2": "Attack2",
+      "death": "Death",
+      "cast": "Spell1_0"
+    },
+    "height": 2,
+    "name": "潜龙刺"
+  },
+  "Chogath": {
+    "path": "assets/models/chogath/chogath.glb",
+    "clips": {
+      "idle": "Idle1",
+      "run": "Run",
+      "attack": "Attack1",
+      "attack2": "Attack2",
+      "death": "Death",
+      "cast": "Spell1"
+    },
+    "height": 2.2,
+    "name": "虚空恐惧"
+  },
+  "AurelionSol": {
+    "path": "assets/models/aurelionsol/aurelionsol.glb",
+    "clips": {
+      "idle": "Idle1_Base",
+      "run": "Run1A",
+      "attack": "AurelionSol_Attack1.anm",
+      "attack2": "AurelionSol_Attack2.anm",
+      "death": "Death",
+      "cast": "Spell4"
+    },
+    "height": 2,
+    "float": 0.25,
+    "name": "星界龙神"
+  },
+  "Brand": {
+    "path": "assets/models/brand/brand.glb",
+    "clips": {
+      "idle": "Idle1",
+      "run": "Run",
+      "attack": "Attack1",
+      "attack2": "Attack2",
+      "death": "Death",
+      "cast": "Spell4"
+    },
+    "height": 2,
+    "name": "焰魂"
+  },
+  "Draven": {
+    "path": "assets/models/draven/draven.glb",
+    "clips": {
+      "idle": "Idle1",
+      "run": "draven_run.anm",
+      "attack": "Attack1",
+      "attack2": "Attack2",
+      "death": "Death",
+      "cast": "draven_spell1_spin_left_right.anm"
+    },
+    "height": 2,
+    "name": "帝国之斧"
+  },
+  "Kindred": {
+    "path": "assets/models/kindred/kindred.glb",
+    "clips": {
+      "idle": "Idle_Base",
+      "run": "Lamb_run.anm",
+      "attack": "Attack1",
+      "attack2": "Attack2",
+      "death": "Death",
+      "cast": "Spell4"
+    },
+    "companion": {
+      "path": "assets/models/kindred/kindredwolf.glb",
+      "clips": {
+        "idle": "Idle1_Base",
+        "run": "Run",
+        "attack": "Attack1",
+        "attack2": "Attack2",
+        "death": "Death",
+        "cast": null
+      }
+    },
+    "height": 2,
+    "name": "驭影双生"
+  },
+  "Gnar": {
+    "path": "assets/models/gnar/gnar.glb",
+    "clips": {
+      "idle": "Idle1_Base",
+      "run": "Run_Base",
+      "attack": "Gnar_Attack1.anm",
+      "attack2": "Gnar_Attack2.anm",
+      "death": "Death",
+      "cast": "Spell3"
+    },
+    "form": {
+      "path": "assets/models/gnar/gnarbig.glb",
+      "clips": {
+        "idle": "Idle1_Base",
+        "run": "Run_Base",
+        "attack": "GnarBig_Attack1.anm",
+        "attack2": "GnarBig_Attack2.anm",
+        "death": "GnarBig_Death.anm",
+        "cast": "Spell4_Base"
+      }
+    },
+    "height": 1.65,
+    "name": "狻猊之心"
+  },
+  "Jinx": {
+    "path": "assets/models/jinx/jinx.glb",
+    "clips": {
+      "idle": "Idle1_Base",
+      "run": "Run_Base",
+      "attack": "Attack1",
+      "attack2": "Attack2",
+      "death": "Death",
+      "cast": null
+    },
+    "ranged": {
+      "idle": "Jinx_Rlauncher_idle1.anm",
+      "run": "Jinx_Rlauncher_run.anm",
+      "attack": "Jinx_Rlauncher_attack1.anm",
+      "attack2": "Jinx_Rlauncher_attack2.anm",
+      "death": "Jinx_Rlauncher_death.anm"
+    },
+    "height": 2,
+    "name": "暴走萝莉"
+  },
+  "Wukong": {
+    "path": "assets/models/wukong/wukong.glb",
+    "clips": {
+      "idle": "Idle1",
+      "run": "Run",
+      "attack": "Attack1",
+      "attack2": "Attack2",
+      "death": "Death",
+      "cast": "Spell4",
+      "channel": "Spell4"
+    },
+    "height": 2,
+    "name": "齐天大圣"
+  },
+  "Kayle": {
+    "path": "assets/models/kayle/kayle.glb",
+    "clips": {
+      "idle": "Idle1_Base",
+      "run": "Run1",
+      "attack": "kayle_attack1.anm",
+      "attack2": "kayle_attack2.anm",
+      "death": "Death",
+      "cast": "Spell4"
+    },
+    "height": 2,
+    "name": "圣光战神"
+  },
+  "Karthus": {
+    "path": "assets/models/karthus/karthus.glb",
+    "clips": {
+      "idle": "Idle1_Base",
+      "run": "Run_Base",
+      "attack": "Attack1",
+      "attack2": "Attack2",
+      "death": "Death",
+      "cast": "Spell4",
+      "channel": "Spell4_Loop"
+    },
+    "height": 2,
+    "name": "挽歌"
+  },
+  "Anivia": {
+    "path": "assets/models/anivia/anivia.glb",
+    "clips": {
+      "idle": "Idle1",
+      "run": "Run",
+      "attack": "Attack1",
+      "attack2": "Attack2",
+      "death": "Death",
+      "cast": "Spell4"
+    },
+    "height": 2,
+    "float": 0.25,
+    "name": "灵鸟毕方"
+  },
+  "Yasuo": {
+    "path": "assets/models/yasuo/yasuo.glb",
+    "clips": {
+      "idle": "Idle1_Raw",
+      "run": "Run1_Raw",
+      "attack": "Attack1",
+      "attack2": "Attack2",
+      "death": "Death",
+      "cast": "Spell1A"
+    },
+    "thirdCast": "Spell1_Wind",
+    "height": 2,
+    "name": "疾风剑豪"
+  },
+  "Swain": {
+    "path": "assets/models/swain/swain.glb",
+    "clips": {
+      "idle": "Idle_Loop",
+      "run": "RunNormal",
+      "attack": "Attack1",
+      "attack2": "Attack2",
+      "death": "Death",
+      "cast": "DemonWindup"
+    },
+    "form": {
+      "path": "assets/models/swain/swaindemonform.glb",
+      "clips": {
+        "idle": "Idle1",
+        "run": "Run",
+        "attack": "Attack1",
+        "attack2": "Attack2",
+        "death": null,
+        "cast": "DemonTrigger"
+      }
+    },
+    "height": 2,
+    "name": "凤黯"
+  },
+  "MissFortune": {
+    "path": "assets/models/missfortune/missfortune.glb",
+    "clips": {
+      "idle": "Idle1_Base",
+      "run": "Run",
+      "attack": "Attack1",
+      "attack2": "Attack2",
+      "death": "Death",
+      "cast": "Spell4_Windup",
+      "channel": "Spell4_Loop"
+    },
+    "height": 2,
+    "name": "双枪女帝"
+  },
+  "Pantheon": {
+    "path": "assets/models/pantheon/pantheon.glb",
+    "clips": {
+      "idle": "Idle1",
+      "run": "Run_Base",
+      "attack": "Attack1",
+      "attack2": "Attack2",
+      "death": "Death",
+      "cast": "Spell4"
+    },
+    "height": 2,
+    "name": "星龙战神"
+  },
+  "Kaisa": {
+    "path": "assets/models/kaisa/kaisa.glb",
+    "clips": {
+      "idle": "Idle1_Base",
+      "run": "Run_Base",
+      "attack": "Attack1_0",
+      "attack2": "Attack2_0",
+      "death": "Death",
+      "cast": "Spell4"
+    },
+    "height": 2,
+    "name": "虚空之女"
+  },
+  "spider": {
+    "path": "assets/models/elise/elisespiderling.glb",
+    "clips": {
+      "idle": "EliseSpider_Idle1.anm",
+      "run": "Run",
+      "attack": "EliseSpider_Attack1.anm",
+      "attack2": "EliseSpider_Attack2.anm",
+      "death": "Death",
+      "cast": null
+    },
+    "height": 0.65,
+    "name": "小蜘蛛"
+  }
+}

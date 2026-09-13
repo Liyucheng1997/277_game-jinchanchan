@@ -1,0 +1,14 @@
+{
+  "sourceSha256": "053934a97f46d7885fd513ff885c2286a32735a9355c2a5fe720b5f6a3a08d28",
+  "runtimeSha256": "249354f408c25aa662cc4b4d36f960ef53a05f77d9e528df0ae80bf2f1503561",
+  "sourceBytes": 4190524,
+  "runtimeBytes": 1226676,
+  "clips": [
+    "Attack1",
+    "Attack2",
+    "Death",
+    "Elise_idle1.anm",
+    "Run"
+  ],
+  "processing": "Retain gameplay animations; repack referenced buffer views. Geometry, bones, textures unchanged."
+}

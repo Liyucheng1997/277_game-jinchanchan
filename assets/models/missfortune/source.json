@@ -1,0 +1,42 @@
+{
+  "hero": "MissFortune",
+  "name": "双枪女帝",
+  "sourcePage": "https://modelviewer.lol/model-viewer?id=21000",
+  "downloadUrl": "https://cdn.modelviewer.lol/lol/models/missfortune/21000/model.glb",
+  "retrieved": "2026-09-13",
+  "bytes": 2782256,
+  "sha256": "2fb8d1ef17009931730d4579d1d47d2e0c28d875e646665609a08e5a08ffe878",
+  "bones": 89,
+  "animations": [
+    "Attack1",
+    "Attack2",
+    "Channel",
+    "Channel_Wndup",
+    "Crit",
+    "Dance",
+    "Death",
+    "Idle1_Base",
+    "missfortune_idle3.anm",
+    "Joke",
+    "Laugh",
+    "Run",
+    "Run2",
+    "Spell1",
+    "Spell2",
+    "Spell3",
+    "Spell4_Windup",
+    "Taunt",
+    "missfortune_Spell4_to_Idle.anm",
+    "Idle_In",
+    "Idle2_Base",
+    "Spell4_Loop",
+    "Recall_Winddown",
+    "Respawn"
+  ],
+  "meshes": [
+    ""
+  ],
+  "extensions": [],
+  "owner": "Riot Games",
+  "scope": "LoL base candidate; JCC version match and original VFX not verified"
+}

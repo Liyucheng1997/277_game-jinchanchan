@@ -1,0 +1,15 @@
+{
+  "sourceSha256": "d1808012fcc642abb061e020d52f6ccf9b4ffef737500fdb9660d8bd417bc636",
+  "runtimeSha256": "2c8898ef4e39a91492fa24f2f594e30c8286301d6f75b7519c9d6d4cc1f8731b",
+  "sourceBytes": 3947136,
+  "runtimeBytes": 1396376,
+  "clips": [
+    "Nami_attack1.anm",
+    "Nami_attack2.anm",
+    "Idle1_Base",
+    "Death",
+    "Nami_spell2.anm",
+    "Nami_run.anm"
+  ],
+  "processing": "Retain gameplay animations; repack referenced buffer views. Geometry, bones, textures unchanged."
+}

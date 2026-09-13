@@ -453,6 +453,7 @@ const UI = {
       };
       this.tip(d, () => this.equipPreviewTip(this.selected, loc) || this.heroTip(h, u.star, u.items, u));
     } else if (u.heroId) this.tip(d, () => this.heroTip(h, u.star, u.items, u));
+    window.Characters3D?.attach(d, u, side);
     return d;
   },
   monsterArt(id) {
@@ -972,6 +973,7 @@ const UI = {
     return u.side ? "#eb9d85" : "#a3e0c0";
   },
   consumeEvent(e) {
+    window.Characters3D?.event(e);
     const u = e.unit,
       p = u ? Hex.point(u.x, u.y) : { x: 0, y: 0 },
       d = u ? this.combatEls.get(u.fid) : null,

@@ -1,0 +1,15 @@
+{
+  "sourceSha256": "571e976f9af9224759641e1f39635674ecb1826131beeddff9b13e6d6e330640",
+  "runtimeSha256": "fe0b24a0c58a177213ed7ff306e50bd109e001c302e67aab8de178e79915f5af",
+  "sourceBytes": 8444740,
+  "runtimeBytes": 1665704,
+  "clips": [
+    "Attack1",
+    "Attack2",
+    "Death",
+    "Idle_Loop",
+    "RunNormal",
+    "DemonWindup"
+  ],
+  "processing": "Retain gameplay animations; repack referenced buffer views. Geometry, bones, textures unchanged."
+}

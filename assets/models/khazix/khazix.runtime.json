@@ -1,0 +1,15 @@
+{
+  "sourceSha256": "3d40525c41fe6b9eb5ca5bfa60c82ed330516c5a4145278992991244ecb1a1a1",
+  "runtimeSha256": "91a73c383d93ffa5b94a3a2bfb1bc1cf7606eded3bd8979e2ca1c0c5008b2bab",
+  "sourceBytes": 4311460,
+  "runtimeBytes": 1341732,
+  "clips": [
+    "Attack1",
+    "Attack2",
+    "Death",
+    "Khazix_idle1.anm",
+    "Khazix_run.anm",
+    "Spell1"
+  ],
+  "processing": "Retain gameplay animations; repack referenced buffer views. Geometry, bones, textures unchanged."
+}

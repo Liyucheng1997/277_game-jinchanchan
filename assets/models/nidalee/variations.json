@@ -1,0 +1,24 @@
+{
+  "lang": "en-US",
+  "chromas": [],
+  "forms": [],
+  "additionalAliases": [
+    {
+      "id": "nidaleecougar",
+      "name": "Cougar"
+    },
+    {
+      "id": "jade_nidalee",
+      "name": "Nidalee (Pre-VU)"
+    }
+  ],
+  "id": "76000",
+  "group": "lol",
+  "alias": "nidalee",
+  "name": "Nidalee",
+  "baseForm": [
+    0
+  ],
+  "desktopContainerId": "skin-options-desktop",
+  "mobileContainerId": "skin-options-mobile"
+}

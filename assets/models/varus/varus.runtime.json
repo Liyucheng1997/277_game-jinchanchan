@@ -1,0 +1,15 @@
+{
+  "sourceSha256": "3789294878f602b732cc572c3246f9116194a330a55bd5d038aa011a11bdae47",
+  "runtimeSha256": "0f15ad34b261b6616bfd830cbe6609450bfc275cf7271216064de9a6974cd9f1",
+  "sourceBytes": 5496940,
+  "runtimeBytes": 1928412,
+  "clips": [
+    "Attack1",
+    "Attack2",
+    "Death",
+    "varus_idle1.anm",
+    "Spell1_Fire",
+    "Run"
+  ],
+  "processing": "Retain gameplay animations; repack referenced buffer views. Geometry, bones, textures unchanged."
+}

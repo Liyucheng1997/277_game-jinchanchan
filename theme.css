@@ -170,3 +170,13 @@ kbd { border-radius: 4px; background: #06131750; color: #a5b8ae; }
 #shopSellZone small { font-size: 11px; color: #9dac9e; }
 .shop-dock.selling.drop { border-color: #e1c279; background: linear-gradient(120deg, #3b493b, #53492c); box-shadow: inset 0 0 28px #cab26c16; }
 .shop-dock.selling.drop #shopSellZone { border-color: #d6ba76; }
+/* DOM hit targets and health bars remain above the 3D render. */
+.unit.has-3d .unit-portrait { visibility: hidden; }
+.unit.has-3d::before { display: none; }
+.character-3d { position: absolute; width: 160px; height: 160px; left: -46px; bottom: -25px; pointer-events: none; z-index: 1; filter: brightness(1.18) contrast(.96); }
+.has-3d .unit-bars, .has-3d .unit-equips, .has-3d .unit-stars, .has-3d .unit-name { z-index: 3; }
+.unit.has-3d.dead { transform: translate(-50%, -90%); opacity: 1; }
+.unit.has-3d.dead .unit-bars, .unit.has-3d.dead .unit-name { visibility: hidden; }
+.unit.garen-spinning .unit-base { width: 96px; height: 36px; left: -14px; border: 2px solid #ffe59a; box-shadow: 0 0 15px #f8d462; background: radial-gradient(ellipse, transparent 45%, #ffe59366 65%, transparent 75%); }
+.garen-demo-bar { position: fixed; left: 50%; top: 4px; transform: translateX(-50%); z-index: 1000; display: flex; align-items: center; gap: 15px; padding: 8px 16px; background: #10282e; border: 1px solid #bda369; color: #f1dfa6; white-space: nowrap; font-size: 13px; }
+.garen-demo-bar a { color: #bce9df; }

@@ -1,0 +1,15 @@
+{
+  "sourceSha256": "73cdf30484faad03d34b282b9101f73512c1dd1ea3e544f10646031f3d0b735e",
+  "runtimeSha256": "334ee3d0a42f7113de22ef0e4969a7a80aaae641d7f6ca738cf1deb0750b16cf",
+  "sourceBytes": 3515460,
+  "runtimeBytes": 1357080,
+  "clips": [
+    "Attack1",
+    "Attack2",
+    "Death",
+    "Idle1",
+    "Run",
+    "kogmaw_spell2.anm"
+  ],
+  "processing": "Retain gameplay animations; repack referenced buffer views. Geometry, bones, textures unchanged."
+}

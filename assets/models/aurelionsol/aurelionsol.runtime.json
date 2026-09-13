@@ -1,0 +1,15 @@
+{
+  "sourceSha256": "d506803199a3ab374e847445167a4df951e4e37e5ebb2e5e283e762a61ea3309",
+  "runtimeSha256": "eaea206779c9f47d8b75c7a4da3ec23c6e4a72cd3756ff87ed9c7d31f3490a14",
+  "sourceBytes": 11511768,
+  "runtimeBytes": 1646420,
+  "clips": [
+    "AurelionSol_Attack2.anm",
+    "AurelionSol_Attack1.anm",
+    "Idle1_Base",
+    "Run1A",
+    "Death",
+    "Spell4"
+  ],
+  "processing": "Retain gameplay animations; repack referenced buffer views. Geometry, bones, textures unchanged."
+}

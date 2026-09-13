@@ -1,0 +1,37 @@
+{
+  "hero": "Wukong",
+  "name": "齐天大圣",
+  "sourcePage": "https://modelviewer.lol/model-viewer?id=62000",
+  "downloadUrl": "https://cdn.modelviewer.lol/lol/models/monkeyking/62000/model.glb",
+  "retrieved": "2026-09-13",
+  "bytes": 3287012,
+  "sha256": "a1074b249d89bc256b4a7a1d3f9c675f446c45583c90967544a6110b08016533",
+  "bones": 79,
+  "animations": [
+    "Attack1",
+    "Attack2",
+    "Channel",
+    "Channel_Wndup",
+    "Crit",
+    "Dance",
+    "Death",
+    "Idle1",
+    "Idle2",
+    "Idle3",
+    "Idle4",
+    "Laugh",
+    "Joke",
+    "Spell1",
+    "Spell2",
+    "Spell3",
+    "Spell4",
+    "Taunt",
+    "Run"
+  ],
+  "meshes": [
+    ""
+  ],
+  "extensions": [],
+  "owner": "Riot Games",
+  "scope": "LoL base candidate; JCC version match and original VFX not verified"
+}

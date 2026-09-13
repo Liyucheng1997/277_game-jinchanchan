@@ -1,0 +1,13 @@
+{
+  "sourceSha256": "2076212367aa82e0abf8cc924ec946ec8ccaf672dc0e0518d484e7eafbd9d558",
+  "runtimeSha256": "de701b6b382a45349b91960afabf88a037fe8604f33d9d98016e0d70d1e4f21c",
+  "sourceBytes": 2400916,
+  "runtimeBytes": 1107552,
+  "clips": [
+    "graves_attack1.anm",
+    "Death",
+    "Idle1",
+    "Run"
+  ],
+  "processing": "Retain gameplay animations; repack referenced buffer views. Geometry, bones, textures unchanged."
+}

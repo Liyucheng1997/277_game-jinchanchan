@@ -1,0 +1,24 @@
+{
+  "lang": "en-US",
+  "chromas": [],
+  "forms": [],
+  "additionalAliases": [
+    {
+      "id": "lulufaerie",
+      "name": "Faerie"
+    },
+    {
+      "id": "lulupolymorphcritter",
+      "name": "Polymorph"
+    }
+  ],
+  "id": "117000",
+  "group": "lol",
+  "alias": "lulu",
+  "name": "Lulu",
+  "baseForm": [
+    0
+  ],
+  "desktopContainerId": "skin-options-desktop",
+  "mobileContainerId": "skin-options-mobile"
+}

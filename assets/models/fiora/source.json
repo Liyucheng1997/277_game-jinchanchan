@@ -1,0 +1,40 @@
+{
+  "hero": "Fiora",
+  "name": "华剑战姬",
+  "sourcePage": "https://modelviewer.lol/model-viewer?id=114000",
+  "downloadUrl": "https://cdn.modelviewer.lol/lol/models/fiora/114000/model.glb",
+  "retrieved": "2026-09-13",
+  "bytes": 2664624,
+  "sha256": "ffa2ba46bbeaf50950833f03c15584a412856f12bf7ee191fc7496bdb941df89",
+  "bones": 72,
+  "animations": [
+    "Attack1",
+    "Attack2",
+    "Channel",
+    "Channel_Wndup",
+    "Crit",
+    "Death",
+    "Fiora_Idle1.anm",
+    "fiora_idle3.anm",
+    "Laugh",
+    "RunFast",
+    "Spell1",
+    "Taunt",
+    "Dance",
+    "Joke",
+    "Spell2_In",
+    "Spell2",
+    "Spell1_Attack",
+    "IdleIn",
+    "RunWalk",
+    "Spell1_To_Run",
+    "fiora_taunt.anm",
+    "fiora_laugh.anm"
+  ],
+  "meshes": [
+    ""
+  ],
+  "extensions": [],
+  "owner": "Riot Games",
+  "scope": "LoL base candidate; JCC version match and original VFX not verified"
+}

@@ -1,0 +1,22 @@
+{
+  "hero": "Lulu",
+  "alias": "lulufaerie",
+  "path": "assets/models/lulu/lulufaerie.glb",
+  "sourcePage": "https://modelviewer.lol/model-viewer?id=117000",
+  "downloadUrl": "https://cdn.modelviewer.lol/lol/models/lulufaerie/117000/model.glb",
+  "bytes": 1001748,
+  "sha256": "0dfe54868d9c63751e24a230e36883f967e113f7cb3f4886465703fa693bccb3",
+  "animations": [
+    "Attack1",
+    "Attack2",
+    "Crit",
+    "Run",
+    "Idle1",
+    "Dance",
+    "Laugh",
+    "Joke"
+  ],
+  "bones": 25,
+  "retrieved": "2026-09-13",
+  "owner": "Riot Games"
+}

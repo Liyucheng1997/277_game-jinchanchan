@@ -1,0 +1,15 @@
+{
+  "sourceSha256": "15cc9d96a9b34857a054aca591edfaa41fbdc3142a0f66c2dba5c7fb7d5502d4",
+  "runtimeSha256": "76390d3c7f3a0ba7d38dfda052e30da5087d8b88c5678b6f59292e7b4c7400a3",
+  "sourceBytes": 15446536,
+  "runtimeBytes": 2203468,
+  "clips": [
+    "kayle_attack1.anm",
+    "kayle_attack2.anm",
+    "Death",
+    "Idle1_Base",
+    "Run1",
+    "Spell4"
+  ],
+  "processing": "Retain gameplay animations; repack referenced buffer views. Geometry, bones, textures unchanged."
+}

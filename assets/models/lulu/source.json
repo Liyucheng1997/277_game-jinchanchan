@@ -1,0 +1,43 @@
+{
+  "hero": "Lulu",
+  "name": "仙灵女巫",
+  "sourcePage": "https://modelviewer.lol/model-viewer?id=117000",
+  "downloadUrl": "https://cdn.modelviewer.lol/lol/models/lulu/117000/model.glb",
+  "retrieved": "2026-09-13",
+  "bytes": 8215812,
+  "sha256": "525990f8106121760794f6c2cd69f848f2de90ccc3c4fd2ca9048c22f38f8950",
+  "bones": 90,
+  "animations": [
+    "Lulu_Idle2.anm",
+    "Channel",
+    "Run_Haste",
+    "Run",
+    "Lulu_Spell3.anm",
+    "Attack1",
+    "Lulu_idle1.anm",
+    "Attack2",
+    "Run3",
+    "Lulu_idle0.anm",
+    "Lulu_Idle4.anm",
+    "Crit",
+    "Channel_Wndup",
+    "Spell1",
+    "Spell3",
+    "Spell2",
+    "Laugh",
+    "Spell4",
+    "Lulu_Idle3.anm",
+    "Taunt",
+    "Death",
+    "Joke",
+    "Dance",
+    "Recall",
+    "Run_Fast"
+  ],
+  "meshes": [
+    ""
+  ],
+  "extensions": [],
+  "owner": "Riot Games",
+  "scope": "LoL base candidate; JCC version match and original VFX not verified"
+}

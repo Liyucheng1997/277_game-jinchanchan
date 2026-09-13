@@ -1,0 +1,42 @@
+{
+  "hero": "Ashe",
+  "name": "臻冰之箭",
+  "sourcePage": "https://modelviewer.lol/model-viewer?id=22000",
+  "downloadUrl": "https://cdn.modelviewer.lol/lol/models/ashe/22000/model.glb",
+  "retrieved": "2026-09-13",
+  "bytes": 2423140,
+  "sha256": "293211db7dd74c1574e735bcbff99c0e72600f719d29e20714797ecef4a8153f",
+  "bones": 85,
+  "animations": [
+    "Attack1",
+    "Crit",
+    "Death",
+    "Idle1",
+    "Idle2",
+    "Idle3",
+    "Idle4",
+    "Idle5",
+    "Laugh",
+    "Run",
+    "Run2",
+    "Run3",
+    "Spell1",
+    "Spell4",
+    "Taunt",
+    "Channel",
+    "Channel_Wndup",
+    "Dance",
+    "Joke",
+    "Attack2",
+    "Spell3",
+    "Spell2",
+    "ashe_taunt.anm",
+    "Spell1_In"
+  ],
+  "meshes": [
+    ""
+  ],
+  "extensions": [],
+  "owner": "Riot Games",
+  "scope": "LoL base candidate; JCC version match and original VFX not verified"
+}

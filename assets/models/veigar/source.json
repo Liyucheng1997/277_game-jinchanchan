@@ -1,0 +1,36 @@
+{
+  "hero": "Veigar",
+  "name": "邪恶小法师",
+  "sourcePage": "https://modelviewer.lol/model-viewer?id=45000",
+  "downloadUrl": "https://cdn.modelviewer.lol/lol/models/veigar/45000/model.glb",
+  "retrieved": "2026-09-13",
+  "bytes": 1419884,
+  "sha256": "6eae1ff69e7e951cb46cdec09fda94371c4d0274c5bc6c5574004793d49b7eb1",
+  "bones": 50,
+  "animations": [
+    "Attack1",
+    "Attack2",
+    "Channel",
+    "Channel_Wndup",
+    "Crit",
+    "Dance",
+    "Death",
+    "Idle1",
+    "Idle2",
+    "Idle3",
+    "Laugh",
+    "Run",
+    "Spell1",
+    "Spell2",
+    "Spell3",
+    "Spell4",
+    "Taunt",
+    "veigar_taunt.anm"
+  ],
+  "meshes": [
+    ""
+  ],
+  "extensions": [],
+  "owner": "Riot Games",
+  "scope": "LoL base candidate; JCC version match and original VFX not verified"
+}

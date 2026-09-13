@@ -1,0 +1,15 @@
+{
+  "sourceSha256": "39c76a8b669a2aa8f8120a1e83b8a8581425ac14983b5b86bd44e0ec859e8621",
+  "runtimeSha256": "6d9293dc1327b1339ad0e3dd081c6267e389f575409729032b1d98dff5981511",
+  "sourceBytes": 15128988,
+  "runtimeBytes": 1602884,
+  "clips": [
+    "Idle1",
+    "Attack2",
+    "Death",
+    "Run_Base",
+    "Attack1",
+    "Aatrox_ground_Q3.anm"
+  ],
+  "processing": "Retain gameplay animations; repack referenced buffer views. Geometry, bones, textures unchanged."
+}

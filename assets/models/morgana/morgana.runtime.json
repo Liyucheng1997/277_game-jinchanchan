@@ -1,0 +1,15 @@
+{
+  "sourceSha256": "6849c2e8d9ee555b85a3adc43a9fd8aaa58b6a1d7d26c44616be7c812c051473",
+  "runtimeSha256": "81408bc9c6148f7b16525265843c01526d5ab76240debeb57e36b797e71643a2",
+  "sourceBytes": 17419616,
+  "runtimeBytes": 2529664,
+  "clips": [
+    "Attack1",
+    "Attack2",
+    "Death",
+    "Idle1",
+    "morgana_run",
+    "Spell4"
+  ],
+  "processing": "Retain gameplay animations; repack referenced buffer views. Geometry, bones, textures unchanged."
+}

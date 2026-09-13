@@ -1,0 +1,20 @@
+{
+  "lang": "en-US",
+  "chromas": [],
+  "forms": [],
+  "additionalAliases": [
+    {
+      "id": "gnarbig",
+      "name": "Mega"
+    }
+  ],
+  "id": "150000",
+  "group": "lol",
+  "alias": "gnar",
+  "name": "Gnar",
+  "baseForm": [
+    0
+  ],
+  "desktopContainerId": "skin-options-desktop",
+  "mobileContainerId": "skin-options-mobile"
+}

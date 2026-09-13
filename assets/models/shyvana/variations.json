@@ -1,0 +1,28 @@
+{
+  "lang": "en-US",
+  "chromas": [],
+  "forms": [],
+  "additionalAliases": [
+    {
+      "id": "shyvanadragon",
+      "name": "Dragon"
+    },
+    {
+      "id": "2011_shyvana",
+      "name": "Shyvana (2011)"
+    },
+    {
+      "id": "2011_shyvanadragon",
+      "name": "Dragon (2011)"
+    }
+  ],
+  "id": "102000",
+  "group": "lol",
+  "alias": "shyvana",
+  "name": "Shyvana",
+  "baseForm": [
+    0
+  ],
+  "desktopContainerId": "skin-options-desktop",
+  "mobileContainerId": "skin-options-mobile"
+}

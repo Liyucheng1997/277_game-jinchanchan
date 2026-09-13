@@ -1,0 +1,15 @@
+{
+  "sourceSha256": "cefcec085d1fcd83e5ea89787f4275e961d7e3b4e51d385b9f14b53bb89a0f8c",
+  "runtimeSha256": "7ae6de740371611d84ebbf980e0fad69714d69456479d096c3a1b875289a637d",
+  "sourceBytes": 5654096,
+  "runtimeBytes": 1825428,
+  "clips": [
+    "Idle1_Base",
+    "GnarBig_Attack1.anm",
+    "GnarBig_Attack2.anm",
+    "Spell4_Base",
+    "Run_Base",
+    "GnarBig_Death.anm"
+  ],
+  "processing": "Retain gameplay animations; repack referenced buffer views. Geometry, bones, textures unchanged."
+}

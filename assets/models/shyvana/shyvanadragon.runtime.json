@@ -1,0 +1,15 @@
+{
+  "sourceSha256": "621b1949412c943d29344920b216352ba86138b1309259e07ee17f95bba3aa3b",
+  "runtimeSha256": "4b316d28e05156930b9f7d49957ea31f32dce360be44e1d9fbeea9588b1adfd9",
+  "sourceBytes": 9568148,
+  "runtimeBytes": 2369588,
+  "clips": [
+    "Attack1_A",
+    "Attack2_A",
+    "Death",
+    "Idle1",
+    "Spell4",
+    "Run1"
+  ],
+  "processing": "Retain gameplay animations; repack referenced buffer views. Geometry, bones, textures unchanged."
+}

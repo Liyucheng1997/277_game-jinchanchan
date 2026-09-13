@@ -1,0 +1,28 @@
+{
+  "lang": "en-US",
+  "chromas": [],
+  "forms": [],
+  "additionalAliases": [
+    {
+      "id": "swaindemonform",
+      "name": "Demon"
+    },
+    {
+      "id": "swain_pre_vu",
+      "name": "Swain (Pre-VU)"
+    },
+    {
+      "id": "swainraven_pre_vu",
+      "name": "Raven Form (Pre-VU)"
+    }
+  ],
+  "id": "50000",
+  "group": "lol",
+  "alias": "swain",
+  "name": "Swain",
+  "baseForm": [
+    0
+  ],
+  "desktopContainerId": "skin-options-desktop",
+  "mobileContainerId": "skin-options-mobile"
+}

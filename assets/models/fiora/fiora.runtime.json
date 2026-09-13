@@ -1,0 +1,15 @@
+{
+  "sourceSha256": "ffa2ba46bbeaf50950833f03c15584a412856f12bf7ee191fc7496bdb941df89",
+  "runtimeSha256": "bf0fa9586c25c615e39cc45c2dbac77016028aa09466808695048ef59d1e6c2f",
+  "sourceBytes": 2664624,
+  "runtimeBytes": 1038676,
+  "clips": [
+    "Attack1",
+    "Attack2",
+    "Death",
+    "Fiora_Idle1.anm",
+    "Spell2",
+    "RunWalk"
+  ],
+  "processing": "Retain gameplay animations; repack referenced buffer views. Geometry, bones, textures unchanged."
+}

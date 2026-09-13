@@ -1,0 +1,19 @@
+{
+  "sourceSha256": "a0dd76f40b84c44d3be423eabae5f6cc86bbf407a141d2b50116306d6c4510fb",
+  "runtimeSha256": "7dfe8825fb290e448d4c7cea4d713eef86758e4d4cb0b60e1073a3833ddb3a2d",
+  "sourceBytes": 3738948,
+  "runtimeBytes": 1633684,
+  "clips": [
+    "Attack2",
+    "Death",
+    "jayce_melee_idle1.anm",
+    "Run",
+    "Spell3",
+    "Ranged_Attack1",
+    "Ranged_Attack2",
+    "Ranged_Run",
+    "jayce_ranged_idle1.anm",
+    "Attack1"
+  ],
+  "processing": "Retain gameplay animations; repack referenced buffer views. Geometry, bones, textures unchanged."
+}

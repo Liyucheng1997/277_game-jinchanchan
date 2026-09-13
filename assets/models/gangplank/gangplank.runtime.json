@@ -1,0 +1,15 @@
+{
+  "sourceSha256": "2718f16408f6ca06e053a59f7c0de48ae99aceccb9327998736d9ec14de855d2",
+  "runtimeSha256": "863192fa38af2f4a126bf27dacd036e8c4fc8c6ad8f09d7114fed11ac9a66c3f",
+  "sourceBytes": 3896372,
+  "runtimeBytes": 1678700,
+  "clips": [
+    "Attack1",
+    "Attack2",
+    "Death",
+    "Idle1",
+    "Run_Base",
+    "Gangplank_spell3.anm"
+  ],
+  "processing": "Retain gameplay animations; repack referenced buffer views. Geometry, bones, textures unchanged."
+}

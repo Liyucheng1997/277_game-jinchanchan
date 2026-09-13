@@ -1,0 +1,36 @@
+{
+  "hero": "Brand",
+  "name": "焰魂",
+  "sourcePage": "https://modelviewer.lol/model-viewer?id=63000",
+  "downloadUrl": "https://cdn.modelviewer.lol/lol/models/brand/63000/model.glb",
+  "retrieved": "2026-09-13",
+  "bytes": 2270348,
+  "sha256": "2dd529e0d589003e3809752a7de8d0c7d8938cbe990cf30614fbd276bb5a1aa5",
+  "bones": 72,
+  "animations": [
+    "Attack1",
+    "Attack2",
+    "Channel",
+    "Channel_Wndup",
+    "Crit",
+    "Death",
+    "Idle1",
+    "Idle2",
+    "Idle3",
+    "Joke",
+    "Laugh",
+    "Run",
+    "Spell1",
+    "Spell2",
+    "Spell3",
+    "Spell4",
+    "Taunt",
+    "Dance"
+  ],
+  "meshes": [
+    ""
+  ],
+  "extensions": [],
+  "owner": "Riot Games",
+  "scope": "LoL base candidate; JCC version match and original VFX not verified"
+}

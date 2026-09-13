@@ -1,0 +1,15 @@
+{
+  "sourceSha256": "f7ceb8e8e62ecf616225b5f76ea145cd42af759356903a70a1dcb823e7600a3a",
+  "runtimeSha256": "b452fd0695d5abbec5d386556fd28a4ab4e3ab971ebb555005be543f5eaf30be",
+  "sourceBytes": 9887004,
+  "runtimeBytes": 1582020,
+  "clips": [
+    "Idle1_Base",
+    "Gnar_Attack1.anm",
+    "Gnar_Attack2.anm",
+    "Spell3",
+    "Run_Base",
+    "Death"
+  ],
+  "processing": "Retain gameplay animations; repack referenced buffer views. Geometry, bones, textures unchanged."
+}

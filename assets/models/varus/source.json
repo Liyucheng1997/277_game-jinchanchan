@@ -1,0 +1,41 @@
+{
+  "hero": "Varus",
+  "name": "迅箭",
+  "sourcePage": "https://modelviewer.lol/model-viewer?id=110000",
+  "downloadUrl": "https://cdn.modelviewer.lol/lol/models/varus/110000/model.glb",
+  "retrieved": "2026-09-13",
+  "bytes": 5496940,
+  "sha256": "3789294878f602b732cc572c3246f9116194a330a55bd5d038aa011a11bdae47",
+  "bones": 89,
+  "animations": [
+    "Attack1",
+    "Attack2",
+    "Crit",
+    "Death",
+    "varus_idle1.anm",
+    "varus_idle2.anm",
+    "varus_idle3.anm",
+    "varus_idle4.anm",
+    "Laugh",
+    "Spell3",
+    "Spell4",
+    "Taunt",
+    "Channel",
+    "Channel_Wndup",
+    "Dance",
+    "Spell1",
+    "Spell1_Walk",
+    "Spell1_Idle",
+    "Spell1_Fire",
+    "Joke",
+    "Run",
+    "Run2",
+    "varus_base_weapon.anm"
+  ],
+  "meshes": [
+    ""
+  ],
+  "extensions": [],
+  "owner": "Riot Games",
+  "scope": "LoL base candidate; JCC version match and original VFX not verified"
+}
