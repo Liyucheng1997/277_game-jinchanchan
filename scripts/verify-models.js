@@ -47,7 +47,7 @@
     const shapeIds=['Nidalee','Elise','Shyvana','Gnar','Swain','Jayce','Jinx'];
     await HeroDemo.start(shapeIds);G.paused=true;await wait(200);
     for(const u of Game.engine.units){u.transformed=true;if(u.heroId==='Jinx')u.stacks.jinx=2;}
-    Characters3D.frame(.04);await wait(200);
+    for(let frame=0;frame<30;frame++){Characters3D.frame(.04);await wait(20);}
     for(const a of Characters3D.actors.values()){
       if(!a.el.isConnected)continue;
       audit.forms.push({id:a.unit.heroId,path:a.assetPath,broken:!!a.broken});

@@ -180,3 +180,5 @@ kbd { border-radius: 4px; background: #06131750; color: #a5b8ae; }
 .unit.garen-spinning .unit-base { width: 96px; height: 36px; left: -14px; border: 2px solid #ffe59a; box-shadow: 0 0 15px #f8d462; background: radial-gradient(ellipse, transparent 45%, #ffe59366 65%, transparent 75%); }
 .garen-demo-bar { position: fixed; left: 50%; top: 4px; transform: translateX(-50%); z-index: 1000; display: flex; align-items: center; gap: 15px; padding: 8px 16px; background: #10282e; border: 1px solid #bda369; color: #f1dfa6; white-space: nowrap; font-size: 13px; }
 .garen-demo-bar a { color: #bce9df; }
+#cacheModels { padding: 2px 8px; border: 1px solid #7c927c; border-radius: 4px; color: #e8d9ad; background: #203638; font-size: 11px; cursor: pointer; }
+#cacheModels:disabled { cursor: default; opacity: .8; }

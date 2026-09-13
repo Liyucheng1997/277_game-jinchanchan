@@ -4,6 +4,10 @@ import * as THREE from '../tmp/3d/node_modules/three/build/three.module.js';
 import { GLTFLoader } from '../tmp/3d/node_modules/three/examples/jsm/loaders/GLTFLoader.js';
 import { clone } from '../tmp/3d/node_modules/three/examples/jsm/utils/SkeletonUtils.js';
 import manifest from '../assets/models/manifest.json';
+import hashes from '../assets/models/hashes.json';
+import {createModelStore} from './model-cache.js';
+const modelStore=createModelStore(hashes);
+const RENDER_SIZE=160;
 
 const actors = new Map(), cache = new Map(), queue = [];
 let renderer, failed = false, elapsed = 0, activeLoads = 0;
@@ -25,7 +29,7 @@ function assetFor(config) {
 function pump() {
   while (activeLoads < 3 && queue.length) {
     const record = queue.shift(); activeLoads++; record.status = 'loading';
-    loader.load(record.config.path, asset => {
+    modelStore.read(record.config.path).then(bytes=>loader.parseAsync(bytes,new URL('.',location.href).href)).then(asset => {
       // Exported files may contain hidden cosmetic meshes (e.g. Kayle levels).
       asset.scene.traverse(o => {
         if (o.isMesh && o.material?.userData?.visible === false) o.visible = false;
@@ -33,7 +37,7 @@ function pump() {
       });
       record.asset = asset; record.status = 'ready'; record.resolve(true);
       activeLoads--; pump();
-    }, undefined, error => {
+    }).catch(error => {
       record.status = 'error'; record.resolve(false); activeLoads--; pump();
       console.warn('3D asset unavailable; retaining portrait:',record.config.path,error);
     });
@@ -105,6 +109,7 @@ function normalize(root,height=2,float=0) {
   root.position.set(-center.x*s,-bounds.min.y*s+float,-center.z*s);
 }
 function initialize(a,config,record) {
+  renderer.setScissorTest(false);renderer.setSize(256,256,false);renderer.setViewport(0,0,256,256);
   const previousAngle=a.root?.rotation.y;
   if (a.root) release(a);
   a.current=config; a.asset=record.asset; a.assetPath=config.path;
@@ -134,6 +139,7 @@ function initialize(a,config,record) {
     oy+=crop*(bottom/256)-next*.80;
     crop=next;a.camera.setViewOffset(256,256,ox,oy,crop,crop);
   }
+  a.canvas.width=a.canvas.height=RENDER_SIZE;
   a.el.dataset.model=a.assetPath; a.dirty=true;
   if (config===a.config.form && config.clips.cast && a.unit.alive!==false) {
     play(a,config.clips.cast,true); a.hold=Math.min(1,a.action.getClip().duration); a.lock='cast';
@@ -151,7 +157,7 @@ function addCompanion(a) {
 }
 
 const api=window.Characters3D={
-  actors,cache,manifest,status:'ready', enabled:new URLSearchParams(location.search).get('models')!=='off',
+  actors,cache,manifest,modelStore,status:'ready', enabled:new URLSearchParams(location.search).get('models')!=='off',
   async ready(ids) {
     if(failed || !this.enabled)return false;
     const configs=ids.flatMap(id=>{const c=manifest[id];return c?[c,c.form,c.companion].filter(Boolean):[];});
@@ -190,6 +196,7 @@ const api=window.Characters3D={
     for(const [el,a]of actors)if(!el.isConnected){release(a);actors.delete(el);}
     if(failed||!this.enabled)return;
     const paused=G.paused||UI.blocking;
+    let initialized=false;
     for(const [el,a]of actors) {
       try {
         if(a.broken)continue;
@@ -197,7 +204,7 @@ const api=window.Characters3D={
         // Preload the alternate form while its normal form is visible.
         if(a.config.form)assetFor(a.config.form);
         if(record.status==='ready') {
-          if(a.assetPath!==desired.path||!a.mixer)initialize(a,desired,record);
+          if(a.assetPath!==desired.path||!a.mixer){if(initialized)continue;initialize(a,desired,record);initialized=true;}
         } else if(!a.mixer) continue;
         addCompanion(a);
         const combat=!!a.unit.fid&&G.phase==='combat'&&!el.classList.contains('preview');
@@ -227,11 +234,13 @@ const api=window.Characters3D={
             a.x=u.x;a.y=u.y;
           }
         }
+        if(a.dead&&a.el.style.opacity==='0')continue;
         const stunned=combat&&Game.engine?.has(u,'stun')&&!a.dead;
         if(paused&&!a.dirty)continue;
         a.mixer.update(stunned?0:delta);a.pet?.mixer.update(stunned?0:delta);
+        if(renderer.domElement.width!==RENDER_SIZE)renderer.setSize(RENDER_SIZE,RENDER_SIZE,false);renderer.setViewport(0,0,RENDER_SIZE,RENDER_SIZE);
         renderer.render(a.scene,a.camera);
-        a.ctx.clearRect(0,0,256,256);a.ctx.drawImage(renderer.domElement,0,0);
+        a.ctx.clearRect(0,0,RENDER_SIZE,RENDER_SIZE);a.ctx.drawImage(renderer.domElement,0,0);
         el.dataset.animation=a.name;a.dirty=false;
       } catch(error) {
         release(a);a.broken=true;console.warn('3D actor fallback:',a.unit.heroId,error);
@@ -248,3 +257,17 @@ try {
     failed=true;api.status='fallback';for(const a of actors.values())release(a);
   });
 } catch(error){failed=true;api.status='fallback';console.warn('3D unavailable; retaining portraits:',error);}
+
+window.addEventListener('DOMContentLoaded',()=>{
+  const button=document.createElement('button');button.id='cacheModels';button.textContent='下载全部模型到本地';
+  button.title='约 106 MB，下载后模型优先读取本机缓存；首次仍需联网下载。';
+  document.querySelector('#saveStatus')?.before(button);
+  button.onclick=async()=>{
+    button.disabled=true;
+    try {
+      const result=await modelStore.downloadAll((done,total,failed)=>{button.textContent=`模型缓存 ${done}/${total}${failed?' · 失败 '+failed:''}`;});
+      button.textContent=result.failed?'部分失败 · 点击重试':result.persistent?'全部模型已缓存':'浏览器未能保存缓存 · 点击重试';
+      button.disabled=!result.failed&&result.persistent;
+    }catch{button.textContent='缓存失败 · 点击重试';button.disabled=false;}
+  };
+});
