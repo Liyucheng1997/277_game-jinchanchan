@@ -334,13 +334,22 @@ const UI = {
         "trait-row" + (tier ? " active" : ""),
         `<span class="trait-icon"><img src="${t.icon}" alt=""></span><span class="trait-name">${t.name}</span><span class="trait-count">${n}<span> / ${next}</span></span>`,
       );
-      this.tip(
-        d,
-        () =>
-          `<div class="tip-title"><img src="${t.icon}"><div>${t.name}<small>${n} 名不同英雄 · ${t.thresholds.join(" / ")}</small></div></div><p>${esc(t.desc)}</p>${t.effects.map((text, i) => `<p style="color:${i < tier ? "#e2ce8d" : "#829a8a"}">${esc(text)}</p>`).join("")}`,
-      );
+      const content = () =>
+          `<div class="tip-title"><img src="${t.icon}"><div>${t.name}<small>${n} 名不同英雄 · ${t.thresholds.join(" / ")}</small></div></div><p>${esc(t.desc)}</p>${t.effects.map((text, i) => `<p style="color:${i < tier ? "#e2ce8d" : "#829a8a"}">${esc(text)}</p>`).join("")}${this.traitHeroes(id)}`;
+      this.tip(d, content);
+      d.tabIndex = 0;
+      d.setAttribute("role", "button");
+      d.onclick = () => this.dialog(t.name + " · 羁绊英雄", content());
+      d.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); d.click(); } };
       traits.append(d);
     }
+  },
+  traitHeroes(id) {
+    const board = new Set(Object.values(G.board).map(u => u.heroId));
+    const bench = new Set(G.bench.filter(Boolean).map(u => u.heroId));
+    return `<div class="trait-heroes"><h4>同羁绊英雄</h4><div class="trait-hero-grid">${Object.values(HEROES)
+      .filter(h => h.traits.includes(id)).sort((a, b) => a.cost - b.cost)
+      .map(h => `<div class="trait-hero ${board.has(h.id) ? "deployed" : ""}"><img src="${h.portrait}" alt="${h.name}" style="border-color:${COST_COLORS[h.cost]}"><span>${h.name}</span><small>${h.cost}费 · ${board.has(h.id) ? "已上阵" : bench.has(h.id) ? "备战席" : "未拥有"}</small></div>`).join("")}</div></div>`;
   },
   renderDamage(engine = Game.engine) {
     const data =
@@ -440,10 +449,10 @@ const UI = {
       };
       d.oncontextmenu = (e) => {
         e.preventDefault();
-        this.heroDetail(u.heroId, u.star);
+        this.heroDetail(u.heroId, u.star, u);
       };
-      this.tip(d, () => this.equipPreviewTip(this.selected, loc) || this.heroTip(h, u.star, u.items));
-    } else if (u.heroId) this.tip(d, () => this.heroTip(h, u.star, u.items));
+      this.tip(d, () => this.equipPreviewTip(this.selected, loc) || this.heroTip(h, u.star, u.items, u));
+    } else if (u.heroId) this.tip(d, () => this.heroTip(h, u.star, u.items, u));
     return d;
   },
   monsterArt(id) {
@@ -680,13 +689,36 @@ const UI = {
     panel.innerHTML = `<div class="end-content"><span class="eyebrow">对局结束</span><div class="rank-number">#${G.rank}</div><h1>${G.rank === 1 ? "大吉大利，今晚吃鸡" : "下一局，再战"}</h1><p>本局抵达 ${roundName(G.round)} · ${G.history.filter((h) => h.win).length} 场近期胜利</p><button class="primary" id="again">再来一局</button></div>`;
     $("#again").onclick = () => Game.newGame();
   },
-  heroTip(h, star = 1, items = []) {
+  heroStats(def, unit = null) {
+    if (unit?.fid && unit.maxHp !== undefined) return unit;
+    const board = Game.boardSpecs();
+    const index = unit ? board.findIndex(s => s.uid === unit.uid) : -1;
+    if (index >= 0) {
+      const live = G.phase === "combat" && Game.engine?.units.find(s => s.side === 0 && s.uid === unit.uid);
+      if (live && def.star === unit.star) return live;
+      board[index] = { ...board[index], ...def };
+      return new CombatEngine(board, [], { visual: false, rng: () => 0.5 }).units[index];
+    }
+    return new CombatEngine([], [], { visual: false, rng: () => 0.5 }).make(def, 0, { x: 3, y: 4 });
+  },
+  heroTip(h, star = 1, items = [], unit = null) {
     const def = { heroId: h.id, star, items },
-      stats = new CombatEngine([], [], { visual: false }).make(def, 0, {
-        x: 3,
-        y: 4,
-      });
-    return `<div class="tip-title"><img src="${h.portrait}"><div>${h.name} <span style="font-size:12px;color:${COST_COLORS[h.cost]}">${"★".repeat(star)}</span><small>${h.traits.map((t) => TRAITS[t].name).join(" · ")}　◉ ${h.cost}</small></div></div><div class="tip-stats"><span><em>生命</em>${Math.round(stats.maxHp)}</span><span><em>攻击</em>${Math.round(stats.atk)}</span><span><em>攻速</em>${(stats.as * (1 + stats.asBonus)).toFixed(2)}</span><span><em>护甲</em>${Math.round(stats.armor)}</span><span><em>魔抗</em>${Math.round(stats.mr)}</span><span><em>射程</em>${stats.range}格</span></div><div class="tip-skill"><h4>${h.skill.icon ? `<img src="${h.skill.icon}">` : ""}${h.skill.name || "选牌"} <span style="margin-left:auto;color:#73c9d1;font-size:10px">${h.startMana}/${h.mana}</span></h4>${skillDesc(h, star)}</div>${items.length ? `<div class="tip-recipe">${items.map(itemImage).join("")}</div>` : ""}<div class="tip-note">属性含装备，不含羁绊 · 战斗效果以本地实现为准</div>`;
+      stats = this.heroStats(def, unit),
+      base = new CombatEngine([], [], { visual: false, rng: () => 0.5 }).make({ ...def, items: [] }, 0, { x: 3, y: 4 });
+    const value = (label, current, original, digits = 0) => {
+      const delta = current - original;
+      return `<span><em>${label}</em>${current.toFixed(digits)}${Math.abs(delta) >= 0.5 * 10 ** -digits ? `<small class="stat-bonus"> (${delta > 0 ? "+" : ""}${delta.toFixed(digits)})</small>` : ""}</span>`;
+    };
+    const fields = [["生命", stats.maxHp, base.maxHp], ["攻击", stats.atk, base.atk],
+      ["攻速", stats.as * (1 + stats.asBonus), base.as, 2], ["护甲", stats.armor, base.armor],
+      ["魔抗", stats.mr, base.mr], ["法强", stats.ap * 100, 100],
+      ["暴击率 %", stats.crit * 100, base.crit * 100], ["暴击伤害 %", stats.critD * 100, base.critD * 100],
+      ["增伤 %", stats.amp * 100, 0], ["格挡", stats.block || 0, 0], ["射程", stats.range, base.range],
+      ["吸血 %", stats.vamp * 100, 0], ["减伤 %", stats.reduce * 100, 0],
+      ["法力回复", stats.regen, 0], ["护盾", stats.effects.filter(e => e.type === "shield" && e.t > 0).reduce((n, e) => n + e.value, 0), 0]];
+    const onBoard = unit && Game.boardSpecs().some(s => s.uid === unit.uid);
+    const live = G.phase === "combat" && (unit?.fid || (onBoard && star === unit.star));
+    return `<div class="tip-title"><img src="${h.portrait}"><div>${h.name} <span style="font-size:12px;color:${COST_COLORS[h.cost]}">${"★".repeat(star)}</span><small>${unitTraits(def).map((t) => TRAITS[t].name).join(" · ")}　◉ ${h.cost}</small></div></div><div class="tip-stats">${fields.map(f => value(...f)).join("")}</div><div class="tip-skill"><h4>${h.skill.icon ? `<img src="${h.skill.icon}">` : ""}${h.skill.name || "选牌"} <span style="margin-left:auto;color:#73c9d1;font-size:10px">${Math.round(stats.mana)}/${stats.manaMax}</span></h4>${skillDesc(h, star)}</div>${items.length ? `<div class="tip-recipe">${items.map(itemImage).join("")}</div>` : ""}<div class="tip-note">${live ? "战斗属性（查看时）" : onBoard ? "上阵属性：含装备、羁绊及站位加成" : unit ? "备战席属性：含装备，上阵后计算羁绊" : "图鉴基础属性"} · 括号为相对当前星级基础值的加成。触发型效果在战斗中生效；人口升级不直接增加棋子属性。</div>`;
   },
   itemTip(id) {
     const i = ITEMS[id];
@@ -822,12 +854,12 @@ const UI = {
       },
     );
   },
-  heroDetail(id, star = 1) {
+  heroDetail(id, star = 1, unit = null) {
     const h = HEROES[id];
     if (!h) return;
     this.dialog(
       h.name,
-      `<div class="hero-detail"><img class="hero-detail-art" src="${h.splash}"><div><div class="star-choice">${[1, 2, 3].map((s) => `<button data-star="${s}" class="${s === star ? "active" : ""}">${"★".repeat(s)}</button>`).join("")}</div><div id="heroDetailStats">${this.heroTip(h, star)}</div><p>剩余卡池：${G.pool[id]} 张<br>右键英雄可查看详情，选中英雄后按 E 出售。</p><button class="subtle-button" id="backCatalog">← 返回英雄图鉴</button></div></div>`,
+      `<div class="hero-detail"><img class="hero-detail-art" src="${h.splash}"><div><div class="star-choice">${[1, 2, 3].map((s) => `<button data-star="${s}" class="${s === star ? "active" : ""}">${"★".repeat(s)}</button>`).join("")}</div><div id="heroDetailStats">${this.heroTip(h, star, unit?.items || [], unit)}</div><p>剩余卡池：${G.pool[id]} 张<br>右键英雄可查看详情，选中英雄后按 E 出售。</p><button class="subtle-button" id="backCatalog">← 返回英雄图鉴</button></div></div>`,
       () => {
         document.querySelectorAll("[data-star]").forEach(
           (b) =>
@@ -838,6 +870,7 @@ const UI = {
               $("#heroDetailStats").innerHTML = this.heroTip(
                 h,
                 Number(b.dataset.star),
+                unit?.items || [], unit,
               );
             }),
         );

@@ -697,22 +697,24 @@ kbd {
 }
 #bench {
   position: absolute;
-  left: 280px;
-  top: 498px;
-  width: 680px;
-  height: 74px;
+  /* Measured stone seats in the 1250 x 740 arena artwork at y=541.
+     Boundaries: 216, 294, 378, 464, 550, 635, 719, 803, 889, 966. */
+  left: 216px;
+  top: 510px;
+  width: 750px;
+  height: 62px;
   display: grid;
-  grid-template-columns: repeat(9, minmax(0, 1fr));
-  align-items: end;
-  gap: 3px;
+  grid-template-columns: 78px 84px 86px 86px 85px 84px 84px 86px 77px;
+  align-items: center;
+  gap: 0;
   z-index: 6;
 }
 .bench-slot {
   width: 100%;
-  height: 65px;
+  height: 62px;
   position: relative;
   cursor: pointer;
-  border-bottom: 2px solid #aabc8945;
+  border: 1px solid #aabc8945;
   border-radius: 0 0 5px 5px;
   background: linear-gradient(0deg, #132b2740, transparent);
   display: grid;
@@ -914,9 +916,9 @@ kbd {
 .bench-slot .unit {
   left: 50%;
   top: 50%;
-  /* Anchor the center of the 19px ground shadow, rather than the portrait. */
-  transform-origin: 50% calc(100% - 9.5px);
-  transform: translate(-50%, calc(-100% + 9.5px)) scale(0.86);
+  /* Center the visible portrait (bottom 8px, height 67px) in its seat. */
+  transform-origin: 50% calc(100% - 41.5px);
+  transform: translate(-50%, calc(-100% + 41.5px)) scale(0.86);
 }
 .bench-slot .unit-name {
   display: none;
@@ -2019,3 +2021,13 @@ button:active {
 @keyframes mascot-walk { to { transform: translateY(-7px) rotate(6deg); } }
 .bench-slot .unit-stars { bottom: -8px; }
 .shop-card:has(.upgrade-badge) .shop-owned { top: 40px; }
+
+.stat-bonus { color: #8ee0b1; font-size: 10px; }
+.trait-row { cursor: pointer; }
+.trait-heroes { border-top: 1px solid #a9bb8b40; margin-top: 12px; padding-top: 8px; }
+.trait-heroes h4 { margin: 0 0 8px; }
+.trait-hero-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.trait-hero { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11px; text-align: center; }
+.trait-hero img { width: 38px; height: 38px; object-fit: cover; border: 2px solid; border-radius: 5px; }
+.trait-hero small { font-size: 9px; color: #98afa6; }
+.trait-hero.deployed small { color: #8ee0b1; }

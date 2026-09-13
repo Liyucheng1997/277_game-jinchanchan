@@ -1,10 +1,12 @@
-# 金铲铲 · 时空裂痕本地练习版 v1.3
+# 金铲铲 · 时空裂痕本地练习版 v1.4
 
 基于原有网页小游戏重构的单机自走棋。使用经典「时空裂痕」官网数据快照，包含 58 位英雄、25 个羁绊、57 件装备，与 7 名电脑弈士进行淘汰对局。
 
-[在线游玩](https://liyucheng1997.github.io/277_game-jinchanchan/) · [v1.3 版本发布](https://github.com/Liyucheng1997/277_game-jinchanchan/releases/tag/v1.3) · [更新记录](CHANGELOG.md)
+[在线游玩](https://liyucheng1997.github.io/277_game-jinchanchan/) · [v1.4 版本发布](https://github.com/Liyucheng1997/277_game-jinchanchan/releases/tag/v1.4) · [更新记录](CHANGELOG.md)
 
-网站通过现有 GitHub Pages 从 `main` 分支根目录部署。发行版本使用 `v1.3` 标签；存档格式版本仍为 3，两者独立。
+网站通过现有 GitHub Pages 从 `main` 分支根目录部署。发行版本使用 `v1.4` 标签；存档格式版本仍为 3，两者独立。
+
+本版修复属性详情的装备与羁绊加成展示，按背景石板校准九格备战席，并增加同羁绊英雄与持有状态查询。
 
 ## 启动
 

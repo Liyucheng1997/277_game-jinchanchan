@@ -7,15 +7,47 @@ const setup=async(phase='prep')=>page.evaluate(phase=>{G.paused=true;G.phase=pha
 const begin=async(selector)=>{const r=await page.locator(selector).first().boundingBox();await page.mouse.move(r.x+r.width/2,r.y+r.height/2);await page.mouse.down();await page.mouse.move(r.x+r.width/2+15,r.y+r.height/2,{steps:3});};
 const overShop=async()=>{const r=await page.locator('.shop-dock').boundingBox();await page.mouse.move(r.x+r.width/2,r.y+r.height/2,{steps:8});};
 await setup();
-// Ground-shadow centers must match all nine bench cells at multiple scales.
+// Independently measured artwork centers, not just the DOM seat centers.
 await page.evaluate(()=>{G.bench=Array.from({length:9},()=>Game.unit('Garen'));UI.render();});
 for(const width of [1280,1600,1920]){
  await page.setViewportSize({width,height:width*9/16});await page.waitForTimeout(150);
- const offsets=await page.evaluate(()=>[...document.querySelectorAll('.bench-slot')].map(slot=>{const a=slot.getBoundingClientRect(),b=slot.querySelector('.unit-base').getBoundingClientRect();return {x:(b.x+b.width/2-a.x-a.width/2)/UI.scale,y:(b.y+b.height/2-a.y-a.height/2)/UI.scale};}));
+ const offsets=await page.evaluate(()=>[...document.querySelectorAll('.bench-slot')].map(slot=>{const a=slot.getBoundingClientRect(),b=slot.querySelector('.unit-portrait').getBoundingClientRect();return {x:(b.x+b.width/2-a.x-a.width/2)/UI.scale,y:(b.y+b.height/2-a.y-a.height/2)/UI.scale};}));
  assert.ok(offsets.every(p=>Math.abs(p.x)<1.1&&Math.abs(p.y)<1.1),JSON.stringify(offsets));
+ const artworkOffsets=await page.evaluate(()=>{
+  const art=document.querySelector('.arena-art').getBoundingClientRect();
+  const centers=[255,336,421,507,592.5,677,761,846,927.5];
+  return [...document.querySelectorAll('.bench-slot')].map((slot,i)=>{
+   const p=slot.querySelector('.unit-portrait').getBoundingClientRect();
+   return {x:(p.x+p.width/2-art.x)/UI.scale-centers[i],y:(p.y+p.height/2-art.y)/UI.scale-541};
+  });
+ });
+ assert.ok(artworkOffsets.every(p=>Math.abs(p.x)<0.1&&Math.abs(p.y)<0.1),JSON.stringify(artworkOffsets));
  const tops=await page.evaluate(()=>['.left-sidebar','.arena-stage','.right-sidebar'].map(s=>document.querySelector(s).getBoundingClientRect().top));assert.ok(Math.max(...tops)-Math.min(...tops)<.1);
 }
 await page.setViewportSize({width:1600,height:900});await page.waitForTimeout(100);
+// Detail stats must agree with the engine for equipment, star upgrades and team traits.
+const statsCheck = await page.evaluate(() => {
+ G.phase='prep'; G.board={'3,4':Game.unit('Garen',['2010']), '4,4':Game.unit('Darius')};
+ const u=G.board['3,4'];
+ const expected=new CombatEngine(Game.boardSpecs(),[],{visual:false,rng:()=>0.5}).units[0];
+ const actual=UI.heroStats(u,u);
+ const base=UI.heroStats({...u,items:[]});
+ const upgraded=UI.heroStats({...u,star:2},u);
+ UI.render();
+ UI.heroDetail(u.heroId,u.star,u);
+ const detail=document.querySelector('#heroDetailStats').innerHTML;
+ const result={same:['maxHp','atk','armor','mr','ap','block'].every(k=>actual[k]===expected[k]),
+ equipment:["atk","ap","asBonus","armor","mr","maxHp"].some(k=>actual[k]>base[k]),upgrade:upgraded.maxHp>actual.maxHp,trait:actual.block>0,
+ detail:detail.includes('2010')&&detail.includes('上阵属性'),roster:UI.traitHeroes('j7').includes('已上阵')&&UI.traitHeroes('j7').includes('未拥有')};
+ UI.closeDialog(); return result;
+});
+assert.ok(Object.values(statsCheck).every(Boolean),JSON.stringify(statsCheck));
+await page.locator('.trait-row').first().click();
+assert.ok(await page.locator('#dialog .trait-hero').count()>1);
+await page.screenshot({path:'tmp/trait-heroes.png'});
+await page.evaluate(()=>UI.closeDialog());
+await page.evaluate(()=>{G.board={};G.bench=Array.from({length:9},()=>Game.unit('Garen'));UI.render();});
+await page.screenshot({path:'tmp/bench-aligned.png'});
 await setup();assert.equal(await page.locator('#sellZone').count(),0);
 await begin('#bench .unit');assert.equal(await page.locator('#shopSellZone').isVisible(),true);assert.match(await page.locator('#shopSellZone').innerText(),/＋3 金币/);await overShop();await page.screenshot({path:'tmp/recruitment-sale.png'});await page.mouse.up();
 assert.deepEqual(await page.evaluate(()=>({gold:G.gold,count:G.bench.filter(Boolean).length,item:G.items.includes('2010')})),{gold:23,count:1,item:true});assert.equal(await page.locator('#shopSellZone').isVisible(),false);assert.equal(await page.locator('.shop-card').first().isVisible(),true);
