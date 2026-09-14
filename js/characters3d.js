@@ -168,6 +168,7 @@ const api=window.Characters3D={
   },
   attach(el,unit,side) {
     const config=manifest[unit.heroId||unit.creepId]; if(!config||failed||!this.enabled)return;
+    if(actors.has(el))return;
     actors.set(el,{el,unit,side,config,hold:0,x:unit.x,y:unit.y,dirty:true});
   },
   event(e) {
@@ -197,6 +198,7 @@ const api=window.Characters3D={
     if(failed||!this.enabled)return;
     const paused=G.paused||UI.blocking;
     let initialized=false;
+    const draws=[];
     for(const [el,a]of actors) {
       try {
         if(a.broken)continue;
@@ -238,13 +240,30 @@ const api=window.Characters3D={
         const stunned=combat&&Game.engine?.has(u,'stun')&&!a.dead;
         if(paused&&!a.dirty)continue;
         a.mixer.update(stunned?0:delta);a.pet?.mixer.update(stunned?0:delta);
-        if(renderer.domElement.width!==RENDER_SIZE)renderer.setSize(RENDER_SIZE,RENDER_SIZE,false);renderer.setViewport(0,0,RENDER_SIZE,RENDER_SIZE);
-        renderer.render(a.scene,a.camera);
-        a.ctx.clearRect(0,0,RENDER_SIZE,RENDER_SIZE);a.ctx.drawImage(renderer.domElement,0,0);
-        el.dataset.animation=a.name;a.dirty=false;
+        draws.push(a);
       } catch(error) {
         release(a);a.broken=true;console.warn('3D actor fallback:',a.unit.heroId,error);
       }
+    }
+    // Submit all heroes before copying any pixels. Interleaving render/drawImage
+    // forces a GPU/Canvas synchronization for every individual hero.
+    if(draws.length) {
+      const columns=Math.min(8,draws.length),rows=Math.ceil(draws.length/columns);
+      const width=columns*RENDER_SIZE,height=rows*RENDER_SIZE;
+      if(renderer.domElement.width!==width||renderer.domElement.height!==height)renderer.setSize(width,height,false);
+      renderer.setScissorTest(true);
+      draws.forEach((a,i)=>{
+        const x=(i%columns)*RENDER_SIZE,y=Math.floor(i/columns)*RENDER_SIZE;
+        renderer.setViewport(x,y,RENDER_SIZE,RENDER_SIZE);renderer.setScissor(x,y,RENDER_SIZE,RENDER_SIZE);
+        renderer.render(a.scene,a.camera);
+      });
+      draws.forEach((a,i)=>{
+        const x=(i%columns)*RENDER_SIZE,y=height-(Math.floor(i/columns)+1)*RENDER_SIZE;
+        a.ctx.clearRect(0,0,RENDER_SIZE,RENDER_SIZE);
+        a.ctx.drawImage(renderer.domElement,x,y,RENDER_SIZE,RENDER_SIZE,0,0,RENDER_SIZE,RENDER_SIZE);
+        a.el.dataset.animation=a.name;a.dirty=false;
+      });
+      renderer.setScissorTest(false);
     }
     evict();
   }

@@ -23,6 +23,7 @@ const UI = {
   damageTab: false,
   fx: [],
   combatEls: new Map(),
+  unitNodes: new WeakMap(),
   scale: 1,
   drag: null,
   suppressClick: false,
@@ -400,26 +401,40 @@ const UI = {
   },
   renderBench() {
     [...$("#bench").children].forEach((s, i) => {
-      s.innerHTML = "";
       const u = G.bench[i];
-      if (u) s.append(this.unitEl(u, { type: "bench", idx: i }));
+      const d = u ? this.unitEl(u, { type: "bench", idx: i }) : null;
+      if (d) { d.style.left = ''; d.style.top = ''; d.style.zIndex = ''; }
+      for (const child of [...s.children]) if (child !== d) child.remove();
+      if (d && d.parentNode !== s) s.append(d);
     });
   },
   unitEl(u, loc = null, side = 0) {
-    const h = u.heroId ? HEROES[u.heroId] : CREEPS[u.creepId],
-      d = make(
+    const h = u.heroId ? HEROES[u.heroId] : CREEPS[u.creepId];
+    const signature = `${u.heroId || u.creepId}:${u.star || 1}:${side}`;
+    const cached = this.unitNodes.get(u);
+    const reuse = cached?.signature === signature;
+    const d = reuse ? cached.node : make(
         "div",
         `unit star${u.star || 1} ${side ? "enemy" : ""} ${u.creepId ? "monster " + u.creepId : ""}`,
       );
-    d.style.setProperty("--cost", COST_COLORS[h.cost || 0]);
-    d.dataset.uid = u.uid || u.fid || "";
-    d.setAttribute("aria-label", h.name);
-    d.tabIndex = loc ? 0 : -1;
+    if (!reuse) {
+      cached?.node.remove();
+      this.unitNodes.set(u, { signature, node: d });
+      d.style.setProperty("--cost", COST_COLORS[h.cost || 0]);
+      d.dataset.uid = u.uid || u.fid || "";
+      d.setAttribute("aria-label", h.name);
     d.innerHTML = `<div class="unit-base"></div>${u.heroId ? `<img class="unit-portrait" src="${h.portrait}" draggable="false" alt="${h.name}">` : this.monsterArt(u.creepId)}<div class="unit-stars">${u.heroId ? "★".repeat(u.star || 1) : ""}</div><div class="unit-bars"><div class="unit-health"></div><div class="unit-mana"></div></div><div class="unit-name">${h.name}</div><div class="unit-equips">${(u.items || []).map(itemImage).join("")}</div>`;
-    if (loc && u.star < 3 && Game.refs().filter((r) => r.unit.heroId === u.heroId && r.unit.star === u.star).length >= 2) {
-      d.classList.add("has-pair");
-      d.append(make("span", "unit-pair", "对子"));
     }
+    const equipment = (u.items || []).join(',');
+    if (d.dataset.equipment !== equipment) {
+      d.querySelector('.unit-equips').innerHTML = (u.items || []).map(itemImage).join('');
+      d.dataset.equipment = equipment;
+    }
+    d.tabIndex = loc ? 0 : -1;
+    const pair = !!loc && u.star < 3 && Game.refs().filter((r) => r.unit.heroId === u.heroId && r.unit.star === u.star).length >= 2;
+    d.classList.toggle('has-pair', pair);
+    if (pair && !d.querySelector('.unit-pair')) d.append(make('span', 'unit-pair', '对子'));
+    if (!pair) d.querySelector('.unit-pair')?.remove();
     if (loc) {
       d.dataset.drop = JSON.stringify(loc);
       d.dataset.loc = JSON.stringify(loc);
@@ -467,7 +482,7 @@ const UI = {
   },
   renderBoard() {
     const layer = $("#unitLayer");
-    layer.innerHTML = "";
+    const keep = new Set();
     this.fx = [];
     this.ctx.clearRect(0, 0, 1250, 740);
     $("#app").classList.remove("combat-active");
@@ -478,10 +493,17 @@ const UI = {
       d.style.left = p.x + "px";
       d.style.top = p.y + "px";
       d.style.zIndex = 5 + y;
-      layer.append(d);
+      keep.add(d);
+      if (d.parentNode !== layer) layer.append(d);
     }
     if (G.phase === "prep") {
-      const preview = new CombatEngine([], Game.preview(), { visual: false });
+      const specs = Game.preview();
+      const signature = JSON.stringify([G.round, G.opponent, specs]);
+      if (this.previewSignature !== signature) {
+        this.previewSignature = signature;
+        this.previewEngine = new CombatEngine([], specs, { visual: false });
+      }
+      const preview = this.previewEngine;
       for (const u of preview.units) {
         const p = Hex.point(u.x, u.y),
           d = this.unitEl(u, null, 1);
@@ -489,9 +511,11 @@ const UI = {
         d.style.left = p.x + "px";
         d.style.top = p.y + "px";
         d.style.zIndex = 5 + u.y;
-        layer.append(d);
+        keep.add(d);
+        if (d.parentNode !== layer) layer.append(d);
       }
     }
+    for (const child of [...layer.children]) if (!keep.has(child)) child.remove();
     this.renderMascot();
     this.renderLoot();
   },
@@ -746,9 +770,12 @@ const UI = {
     return `<div class="craft-preview-title">${changed !== id ? "合成预览" : "装备预览"} · ${HEROES[unit.heroId].name}</div>${this.itemTip(changed)}`;
   },
   tip(node, html) {
+    node.tipContent = html;
+    if (node.tipBound) return;
+    node.tipBound = true;
     node.addEventListener("mouseenter", (e) => {
       if (this.drag?.active) return;
-      this.showTip(e, html(), node);
+      this.showTip(e, node.tipContent(), node);
     });
     node.addEventListener("mousemove", (e) => this.moveTip(e));
     node.addEventListener("mouseleave", () => this.hideTip());
