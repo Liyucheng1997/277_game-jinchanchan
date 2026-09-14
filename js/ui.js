@@ -609,8 +609,22 @@ const UI = {
       pointer: e.pointerId,
     };
   },
+  dropTarget(e, src) {
+    const hit = document.elementFromPoint(e.clientX, e.clientY);
+    // A standing unit extends over the row behind it. Hero placement follows
+    // the ground hex, while equipment still targets the visible unit body.
+    if (src.type !== "item" && hit?.closest("#arena") &&
+        !hit.closest("#bench")) {
+      const hex = document.elementsFromPoint(e.clientX, e.clientY)
+        .find((node) => node.matches(".hex"));
+      if (hex) return hex.matches(".player") ? hex : null;
+      // Do not fall back to an overlapping board unit outside a ground hex.
+      if (hit.closest("#unitLayer")) return null;
+    }
+    return hit?.closest("[data-drop]") || null;
+  },
   pointerMove(e) {
-    if (!this.drag) return;
+    if (!this.drag || e.pointerId !== this.drag.pointer) return;
     const d = this.drag;
     if (
       !d.active &&
@@ -644,11 +658,8 @@ const UI = {
       document
         .querySelectorAll(".drop")
         .forEach((x) => x.classList.remove("drop"));
-      document
-        .elementFromPoint(e.clientX, e.clientY)
-        ?.closest("[data-drop]")
-        ?.classList.add("drop");
-      const target = document.elementFromPoint(e.clientX, e.clientY)?.closest("[data-drop]");
+      const target = this.dropTarget(e, d.src);
+      target?.classList.add("drop");
       const preview = target && this.equipPreviewTip(d.src, JSON.parse(target.dataset.drop));
       if (preview) this.showTip(e, preview);
       else this.hideTip();
@@ -656,11 +667,9 @@ const UI = {
   },
   pointerUp(e) {
     const d = this.drag;
-    if (!d) return;
+    if (!d || e.pointerId !== d.pointer) return;
     if (d.active) {
-      const target = document
-        .elementFromPoint(e.clientX, e.clientY)
-        ?.closest("[data-drop]");
+      const target = this.dropTarget(e, d.src);
       if (target) {
         const dst = JSON.parse(target.dataset.drop);
         if (dst.type === "sell" && d.src.type !== "item") Game.sell(d.src);
