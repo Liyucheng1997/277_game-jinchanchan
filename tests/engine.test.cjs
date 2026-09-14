@@ -27,6 +27,42 @@ vm.runInContext(
 );
 vm.runInContext(fs.readFileSync("js/game.js", "utf8"), ctx);
 const run = (src) => vm.runInContext(src, ctx);
+test('pirate chests settle wins, losses and draws, preserve loot and collect only once', () => {
+  run(`{
+    const random = Math.random;
+    try {
+      for (const winner of [0, 1, -1]) {
+        Game.newGame(); G.muted=true; G.round=4; G.phase='combat'; G.opponent=0;
+        Game.aiResults=[]; Game.battleTraitCounts={r8:3};
+        Game.engine={result:{winner,survivors:[]},units:[]};
+        Math.random=()=>0;
+        Game.finishBattle();
+        if(G.loot?.pirateChests!==1 || G.loot.gold!==0)throw Error('missing empty chest');
+        const chest=JSON.stringify(G.loot); Game.finishBattle();
+        if(JSON.stringify(G.loot)!==chest)throw Error('duplicate settlement');
+        const gold=G.gold; Game.collectLoot(); Game.collectLoot();
+        if(G.loot || G.gold!==gold)throw Error('empty chest collection');
+      }
+      for (const roll of [0, 0.99]) {
+        Game.newGame(); G.muted=true; G.round=4; G.phase='combat'; G.opponent=0;
+        G.loot={gold:2,items:['1002'],pirateChests:1};
+        Game.aiResults=[]; Game.battleTraitCounts={r8:5};
+        Game.engine={result:{winner:0,survivors:[]},units:[]}; Math.random=()=>roll;
+        Game.finishBattle();
+        if(G.loot.pirateChests!==2 || G.loot.gold!==(roll===0?5:9) || G.loot.items.length!==(roll===0?2:1))throw Error('five pirate reward');
+        const gold=G.gold, reward=G.loot.gold, count=G.items.length, items=G.loot.items.length;
+        Game.collectLoot(); Game.collectLoot();
+        if(G.gold!==gold+reward || G.items.length!==count+items)throw Error('duplicate or missing reward');
+      }
+      for (const [round,count] of [[1,5],[4,2]]) {
+        Game.newGame(); G.muted=true; G.round=round; G.phase='combat'; G.opponent=0;
+        Game.aiResults=[]; Game.battleTraitCounts={r8:count};
+        Game.engine={result:{winner:0,survivors:[]},units:[]};
+        Game.finishBattle(); if(G.loot)throw Error('ineligible chest');
+      }
+    } finally { Math.random=random; }
+  }`);
+});
 test("official snapshot contains 58 unique heroes, 25 traits and valid recipes", () => {
   run(`
  if(Object.keys(HEROES).length!==58||Object.keys(TRAITS).length!==25)throw Error('snapshot count');

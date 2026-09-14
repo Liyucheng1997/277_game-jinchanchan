@@ -509,7 +509,9 @@ const UI = {
   },
   renderLoot() {
     $("#lootArea").innerHTML = G.loot
-      ? '<button class="loot-orb" id="collectOrb" aria-label="走过去拾取金币和装备">✦</button><span class="loot-label">点击前往 · 靠近拾取金币和装备</span>'
+      ? G.loot.pirateChests
+        ? `<button class="loot-orb" id="collectOrb" aria-label="走过去开启豪侠宝箱">▣</button><span class="loot-label">豪侠宝箱 ×${G.loot.pirateChests} · 点击前往开启</span>`
+        : '<button class="loot-orb" id="collectOrb" aria-label="走过去拾取金币和装备">✦</button><span class="loot-label">点击前往 · 靠近拾取金币和装备</span>'
       : "";
     if (G.loot) $("#collectOrb").onclick = () => Game.moveMascot(871, 449);
   },

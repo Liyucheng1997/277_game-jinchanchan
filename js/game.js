@@ -775,8 +775,18 @@ const Game = {
         if (b && pair.result.winner !== 1) b.hp = Math.max(0, b.hp - d);
       }
       const cnt = this.battleTraitCounts;
-      if (tierOf("r8", cnt.r8 || 0))
-        G.gold += Math.floor(Math.random() * 5) + (cnt.r8 >= 5 ? 3 : 0);
+      if (tierOf("r8", cnt.r8 || 0)) {
+        const previous = G.loot || { gold: 0, items: [] };
+        // Local five-pirate reward: +3 gold and a 30% chance of equipment.
+        const item = cnt.r8 >= 5 && Math.random() < 0.3
+          ? rand(Object.keys(ITEMS).filter((id) => !EMBLEMS[id])) : null;
+        G.loot = {
+          ...previous,
+          pirateChests: (previous.pirateChests || 0) + 1,
+          gold: previous.gold + Math.floor(Math.random() * 5) + (cnt.r8 >= 5 ? 3 : 0),
+          items: [...previous.items, ...(item ? [item] : [])],
+        };
+      }
     } else {
       if (!win) G.hp = Math.max(0, G.hp - damage);
       const killed = engine.units.filter(
@@ -785,6 +795,7 @@ const Game = {
       if (killed) {
         const previous = G.loot || { gold: 0, items: [] };
         G.loot = {
+          ...previous,
           gold: previous.gold + 2 + Math.floor(Math.random() * 3),
           items: [
             ...previous.items,
@@ -842,8 +853,12 @@ const Game = {
       }
     }
     AudioFX.play(win ? "win" : "lose");
-    UI.toast(win ? "战斗胜利" : `战斗失利 · 生命 -${damage}`);
+    const pirateReward = pvp && tierOf("r8", this.battleTraitCounts.r8 || 0)
+      ? " · 获得豪侠宝箱" : "";
+    UI.toast((win ? "战斗胜利" : `战斗失利 · 生命 -${damage}`) + pirateReward);
     if (G.hp <= 0 || G.bots.every((b) => b.hp <= 0)) {
+      // Settle pending loot before the final screen disables movement.
+      if (G.loot) this.collectLoot();
       G.phase = "over";
       G.rank = G.hp > 0 ? 1 : 1 + G.bots.filter((b) => b.hp > 0).length;
       UI.render();
@@ -862,9 +877,10 @@ const Game = {
     G.items.push(...loot.items);
     G.loot = null;
     AudioFX.play("item");
-    UI.toast(
-      `获得 ${loot.gold} 金币 · ${loot.items.map((i) => ITEMS[i].name).join("、")}`,
-    );
+    const contents = [`${loot.gold} 金币`, ...loot.items.map((i) => ITEMS[i].name)].join(" · ");
+    UI.toast(loot.pirateChests
+      ? `开启豪侠宝箱 ×${loot.pirateChests} · ${contents}${!loot.gold && !loot.items.length ? "（空箱）" : ""}`
+      : `获得 ${contents}`);
     UI.render();
     this.save();
   },
