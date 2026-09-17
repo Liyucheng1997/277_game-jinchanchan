@@ -87,6 +87,8 @@ const UI = {
       this.renderPanels();
     };
     $("#btnGuide").onclick = () => this.guide();
+    $("#btnVersion").onclick = () => this.versions();
+    $("#fortunePanel").onclick = () => this.fortuneGuide();
     $("#btnRecipes").onclick = () => this.recipes();
     $("#btnHeroes").onclick = () => this.catalog();
     $("#closeDialog").onclick = () => this.closeDialog();
@@ -174,6 +176,21 @@ const UI = {
   },
   renderPanels() {
     if (!G) return;
+    const fortune = GameVersions.current === "fortune";
+    document.body.classList.toggle("fortune-mode", fortune);
+    document.title = `金铲铲 · ${GameVersions.names[GameVersions.current]}`;
+    $(".brand-sub").textContent = GameVersions.names[GameVersions.current];
+    $(".edition").textContent = fortune ? "本地改编 · v1.7" : "本地练习 · v1.7";
+    $(".arena-caption span").textContent = `· ${GameVersions.names[GameVersions.current]}`;
+    $("#dialogEyebrow").textContent = GameVersions.names[GameVersions.current];
+    $("#modeFooter").textContent = fortune ? "福星 · 本地改编" : "时空裂痕 · 单机练习";
+    const panel = $("#fortunePanel");
+    panel.hidden = !fortune;
+    if (fortune) {
+      const n = (G.phase === "combat" ? Game.battleTraitCounts : traitCounts(Object.values(G.board)))?.fortune || 0;
+      const f = G.fortune, reward = GameVersions.reward(f.losses, n >= 6);
+      panel.innerHTML = `<span class="fortune-heading">福星 · ${n >= 6 ? "六福临门" : n >= 3 ? "鸿运当头" : "等待上阵"} <b>${n} / ${n >= 3 ? 6 : 3}</b></span><strong>${f.losses}<small> 败积累</small><em>胜利收菜</em></strong><span>${n >= 3 ? "下次获胜" : "激活后获胜"}：${reward.gold} 金币${reward.components + reward.completed ? ` + ${reward.components + reward.completed} 件装备` : ""}</span><span class="fortune-foot">已收菜 ${f.cashouts} 次 · 点击查看规则</span>`;
+    }
     $("#roundLabel").textContent = roundName(G.round);
     $("#phaseLabel").textContent =
       G.phase === "over"
@@ -387,15 +404,18 @@ const UI = {
         continue;
       }
       const h = HEROES[id], hint = Game.upgradeHint(id), owned = hint.owned;
-      const d = make("button", "shop-card" + (G.gold < h.cost ? " poor" : "") + (hint.star ? " can-upgrade" : owned ? " is-owned" : ""));
+      const chosen = G.chosenOffer === i, price = h.cost * (chosen ? 3 : 1);
+      const d = make("button", "shop-card" + (chosen ? " chosen-card" : "") + (G.gold < price ? " poor" : "") + (hint.star ? " can-upgrade" : owned ? " is-owned" : ""));
       d.style.setProperty("--cost", COST_COLORS[h.cost]);
       d.setAttribute("aria-label", `购买 ${h.name} ${h.cost}金币`);
       d.disabled = !Game.canManage();
       d.innerHTML = `<img class="shop-art" src="${h.splash}" draggable="false" alt="${h.name}"><div class="shop-traits">${h.traits.map((t) => `<span><img src="${TRAITS[t].icon}">${TRAITS[t].name}</span>`).join("")}</div><div class="shop-name">${h.name}</div><div class="shop-cost">◉ ${h.cost}</div>${owned ? `<span class="shop-owned">已拥有 ${owned}</span>` : ""}`;
       d.onclick = () => Game.buy(i);
-      if (hint.star || hint.shopMerge) d.append(make("span", "upgrade-badge", hint.star ? `买入升 ${hint.star} 星` : "同店凑齐可升星"));
-      d.setAttribute("aria-label", `购买 ${h.name} ${h.cost}金币${hint.star ? `，买入升${hint.star}星` : owned ? `，已拥有${owned}张` : ""}`);
-      this.tip(d, () => this.heroTip(h, 1));
+      d.querySelector('.shop-cost').textContent = `◉ ${price}`;
+      if (chosen) d.append(make("span", "upgrade-badge", "福星天选 · ★★"));
+      else if (hint.star || hint.shopMerge) d.append(make("span", "upgrade-badge", hint.star ? `买入升 ${hint.star} 星` : "同店凑齐可升星"));
+      d.setAttribute("aria-label", `购买 ${h.name} ${price}金币${chosen ? "，福星天选二星" : hint.star ? `，买入升${hint.star}星` : owned ? `，已拥有${owned}张` : ""}`);
+      this.tip(d, () => (chosen ? '<p class="chosen-tip">福星天选：直接二星，福星人数 +1。每位弈士只能持有一名。</p>' : '') + this.heroTip(h, chosen ? 2 : 1));
       shop.append(d);
     }
   },
@@ -431,6 +451,8 @@ const UI = {
       d.dataset.equipment = equipment;
     }
     d.tabIndex = loc ? 0 : -1;
+    d.classList.toggle('fortune-chosen', u.chosen === 'fortune');
+    d.querySelector('.unit-name').textContent = h.name + (u.chosen ? ' · 天选' : '');
     const pair = !!loc && u.star < 3 && Game.refs().filter((r) => r.unit.heroId === u.heroId && r.unit.star === u.star).length >= 2;
     d.classList.toggle('has-pair', pair);
     if (pair && !d.querySelector('.unit-pair')) d.append(make('span', 'unit-pair', '对子'));
@@ -533,7 +555,9 @@ const UI = {
   },
   renderLoot() {
     $("#lootArea").innerHTML = G.loot
-      ? G.loot.pirateChests
+      ? G.loot.fortuneBags
+        ? `<button class="loot-orb fortune-orb" id="collectOrb" aria-label="领取福星福袋">福</button><span class="loot-label">福星收菜 ×${G.loot.fortuneBags} · ${G.loot.gold} 金币 · 点击领取</span>`
+        : G.loot.pirateChests
         ? `<button class="loot-orb" id="collectOrb" aria-label="走过去开启豪侠宝箱">▣</button><span class="loot-label">豪侠宝箱 ×${G.loot.pirateChests} · 点击前往开启</span>`
         : '<button class="loot-orb" id="collectOrb" aria-label="走过去拾取金币和装备">✦</button><span class="loot-label">点击前往 · 靠近拾取金币和装备</span>'
       : "";
@@ -857,6 +881,17 @@ const UI = {
       "玩法指南",
       `<div class="guide-grid"><article><h3>01 · 招募与站位</h3><p>商店招募英雄，拖到棋盘下半区上阵。也可以先点英雄，再点目标格。前排承伤、后排输出；上阵人数由等级决定。三个相同星级英雄自动合成更高星级。</p></article><article><h3>02 · 经营经济</h3><p>刷新商店消耗 2 金币，购买 4 经验消耗 4 金币。每存 10 金币获得 1 利息，上限 5。八名弈士共享有限卡池，出售返还英雄和装备。战斗中也可买牌、刷牌、买经验和整理备战席；升星下场生效。</p></article><article><h3>03 · 装备与羁绊</h3><p>将装备拖给英雄穿戴，每名英雄最多三件。两件小装备自动合成大装备，也可以在装备区点击两个小件合成。拖动悬停可预览成装和效果，松手合成，Esc 取消。相同英雄只计一次羁绊，纹章可增加羁绊。</p></article><article><h3>04 · 对局与选秀</h3><p>35 秒备战结束后自动开战，也可提前准备就绪。选秀中低血量弈士先选。野怪掉落法球，点击让小精灵前往，靠近自动拾取金币和装备；也可点击空地或右键地面移动。生命归零被淘汰，最后的幸存者获胜。</p></article></div><div class="guide-note"><b>快捷键：</b> D 刷新商店 · F 购买经验 · E 出售选中英雄 · 空格开战 · Esc 关闭面板<br>这是本地练习版，对手为电脑。英雄、羁绊、配方及图标来自<a href="https://jcc.qq.com/#/hero" target="_blank" rel="noreferrer">金铲铲官网</a>的时空裂痕数据快照。当前采用平面棋盘和肖像棋子，野怪数值、部分技能时序与装备细节为本地模拟；未包含原作三维模型、骨骼动画和联网服务。</div>`,
     );
+  },
+  versions() {
+    this.dialog("选择你的版本", `<p class="version-intro">两种玩法，两份进度。切换会自动保存当前对局；战斗中的对局恢复到本回合备战。</p><div class="version-grid"><button class="version-card rift-card" data-version="rift"><span class="version-kicker">CLASSIC · 经典</span><strong>时空裂痕</strong><p>熟悉的八人对局，58 位英雄。经营阵容，争夺最后的胜利。</p><span class="version-features">经典羁绊 · 豪侠宝箱 · 原有进度</span><b>${GameVersions.current === 'rift' ? '当前版本 · 返回对局' : '进入时空裂痕 →'}</b></button><button class="version-card fortune-card" data-version="fortune"><span class="version-kicker">FORTUNE · 本地改编</span><strong>福星临门</strong><p>攒一场连败，等一次逆转。集齐福星与天选，赢下战斗大收菜。</p><span class="version-features">3 / 6 福星 · 二星天选 · 独立存档</span><b>${GameVersions.current === 'fortune' ? '当前版本 · 返回对局' : '进入福星版本 →'}</b></button></div><p class="version-note">福星版在时空裂痕基础上加入五名福星英雄与专属机制，保留其他英雄及装备；并非历史赛季完整复刻。塔姆、安妮使用本地二维肖像。</p>`, () => {
+      document.querySelectorAll('[data-version]').forEach(button => button.onclick = () => {
+        if (button.dataset.version === GameVersions.current) this.closeDialog();
+        else Game.switchVersion(button.dataset.version);
+      });
+    });
+  },
+  fortuneGuide() {
+    this.dialog("福星 · 收菜手册", `<div class="fortune-rules"><h3>先凑三福，再等逆转</h3><p>塔姆（1费）、安妮（2费）、卡特琳娜（3费）、金克丝（3费）、瑟庄妮（4费）。相同英雄只计一次，福星天选额外 +1，五名英雄配天选即可六福。</p><h3>天选从商店招募</h3><p>未持有天选时，每次刷新有 40% 概率尝试将一张福星牌变为天选（需要卡池还有两张）。直接二星，花费三张一星的价格，占用三张卡池；出售后可再次遇到，升三星保留天选。</p><h3>连败积累，获胜收菜</h3><p>${TRAITS.fortune.effects.join('</p><p>')}</p><p>${TRAITS.fortune.desc}</p><p>平局按失败积累。胜利后积累清零；奖励进入福袋，点击领取后才计入金币与利息。奖励数值与技能为本地改编。</p></div>`);
   },
   catalog() {
     this.dialog(

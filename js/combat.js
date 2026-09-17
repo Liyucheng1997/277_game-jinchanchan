@@ -383,6 +383,7 @@ class CombatEngine {
     if (type === "magic" && this.has(t, "garen")) n *= 0.25;
     if (options.attack && t.items.includes("2027")) n *= 0.95;
     n = Math.max(0, n - (t.block || 0));
+    if (t.heroId === "TahmKench") n = Math.max(0, n - this.val(t));
     const before = n;
     for (const sh of t.effects.filter((e) => e.type === "shield" && e.t > 0)) {
       const absorbed = Math.min(sh.value, n);
@@ -491,7 +492,7 @@ class CombatEngine {
     if (t.creepId === "raptor")
       this.allies(t).forEach((u) => (u.asBonus += 0.3));
     for (const u of this.allies(src)) {
-      if (u.heroId === "Jinx") {
+      if (u.heroId === "Jinx" && !u.traits.includes("fortune")) {
         u.stacks.jinx = (u.stacks.jinx || 0) + 1;
         if (u.stacks.jinx === 1) u.asBonus += this.val(u, 1);
       }
@@ -694,6 +695,13 @@ class CombatEngine {
         });
     };
     switch (u.heroId) {
+      case "Annie":
+        this.aoe(u, t, d);
+        this.shield(u, v(1) * u.ap, 6);
+        break;
+      case "Jinx":
+        if (u.traits.includes("fortune")) this.aoe(u, t, d, 1, v(1));
+        break;
       case "Garen":
         this.effect(u, "garen", 4);
         channel(4, 9, () => this.aoe(u, u, d));
@@ -1164,7 +1172,8 @@ class CombatEngine {
         u.manaMax &&
         u.mana >= u.manaMax &&
         u.heroId &&
-        !["Vayne", "Kassadin", "Graves", "Jinx"].includes(u.heroId) &&
+        !["Vayne", "Kassadin", "Graves"].includes(u.heroId) &&
+        (u.heroId !== "Jinx" || u.traits.includes("fortune")) &&
         !(
           ["Nidalee", "Elise", "Shyvana", "Gnar", "Jayce"].includes(u.heroId) &&
           u.transformed

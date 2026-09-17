@@ -182,3 +182,33 @@ kbd { border-radius: 4px; background: #06131750; color: #a5b8ae; }
 .garen-demo-bar a { color: #bce9df; }
 #cacheModels { padding: 2px 8px; border: 1px solid #7c927c; border-radius: 4px; color: #e8d9ad; background: #203638; font-size: 11px; cursor: pointer; }
 #cacheModels:disabled { cursor: default; opacity: .8; }
+/* Version selection and Fortune's warm red / gold accent. */
+.top-actions .version-switch { width: auto; padding: 0 14px; color: #f5d390; font-size: 12px; white-space: nowrap; }
+.version-intro, .version-note { color: #adc1bc; line-height: 1.8; }
+.version-note { font-size: 12px; margin-top: 20px; }
+.version-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 22px; }
+.version-card { text-align: left; padding: 28px; border: 1px solid #526b67; border-radius: 16px; background: linear-gradient(140deg,#203e3b,#102321); color: #eff5e9; cursor: pointer; min-height: 285px; transition: transform .18s, border-color .18s; }
+.version-card:hover, .version-card:focus-visible { transform: translateY(-3px); border-color: #f5d390; outline: 2px solid #f5d390; outline-offset: 3px; }
+.version-card strong { display: block; font-size: 34px; margin: 18px 0; letter-spacing: 3px; color: #f6dfaf; }
+.version-card p { line-height: 1.9; color: #d1dcd3; font-size: 14px; }
+.version-card b { display: block; margin-top: 28px; color: #f3d599; font-size: 15px; }
+.version-kicker, .version-features { font-size: 11px; letter-spacing: 1px; color: #b6bfa2; }
+.fortune-card { background: radial-gradient(ellipse at top right,#86513366,transparent 70%),linear-gradient(140deg,#542629,#271b23); border-color: #9c684e; }
+.fortune-panel { display: block; width: 100%; text-align: left; padding: 14px 16px; border: 1px solid #a37048; border-radius: 12px; background: linear-gradient(130deg,#602c2b,#302427); color: #f3d6a0; cursor: pointer; margin-bottom: 12px; }
+.fortune-panel[hidden] { display: none; }
+.fortune-heading { display: flex; justify-content: space-between; font-size: 13px; }
+.fortune-panel > strong { display: block; font-size: 34px; margin: 6px 0; }
+.fortune-panel small { font-size: 12px; font-weight: normal; }
+.fortune-panel em { float: right; margin-top: 15px; font-size: 11px; font-style: normal; color: #e8aa85; }
+.fortune-panel > span:not(:first-child) { display: block; font-size: 11px; line-height: 1.8; }
+.fortune-foot { color: #c59f89; margin-top: 4px; }
+.fortune-mode .brand-mark { color: #ffcd7c; }
+.fortune-mode .arena-caption { color: #efbe8c; }
+.fortune-mode .left-sidebar { overflow-y: auto; }
+.chosen-card { outline: 2px solid #e6a270; outline-offset: -2px; }
+.chosen-card .upgrade-badge { background: #8c3535; color: #ffe3a0; }
+.fortune-chosen .unit-name { color: #ffe0a2; }
+.fortune-orb { background: #a13736; color: #ffe3a0; }
+.fortune-rules p { line-height: 1.85; color: #c4d3ca; }
+.fortune-rules h3 { color: #e9c58c; margin-top: 22px; }
+.chosen-tip { color: #f5cb8e; }

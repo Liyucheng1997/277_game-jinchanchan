@@ -1,0 +1,11 @@
+{
+  "description": "Local Fortune adaptation. Champion artwork belongs to Riot Games; the Fortune SVG is a locally authored text emblem.",
+  "downloaded": "2026-09-17",
+  "files": {
+    "TahmKench.png": "https://ddragon.leagueoflegends.com/cdn/14.1.1/img/champion/TahmKench.png",
+    "TahmKench.jpg": "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/TahmKench_0.jpg",
+    "Annie.png": "https://ddragon.leagueoflegends.com/cdn/14.1.1/img/champion/Annie.png",
+    "Annie.jpg": "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Annie_0.jpg",
+    "fortune.svg": "Locally authored SVG; not an official trait icon."
+  }
+}

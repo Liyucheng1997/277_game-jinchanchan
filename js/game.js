@@ -112,10 +112,29 @@ const Game = {
     }
   },
   init() {
+    GameVersions.configure(this.readStorage("jcc-mode"));
     UI.init();
     this.load();
     this.last = performance.now();
     this.raf = requestAnimationFrame((t) => this.frame(t));
+  },
+  saveKey() {
+    return GameVersions.current === "fortune" ? "jcc-fortune-v3" : SAVE_KEY;
+  },
+  switchVersion(mode) {
+    if (!Object.hasOwn(GameVersions.names, mode)) return;
+    this.save();
+    this.engine = null;
+    this.acc = 0;
+    this.finishing = 0;
+    this.battleTraitCounts = {};
+    AudioFX.stop();
+    UI.selected = null;
+    UI.closeDialog();
+    UI.hideTip();
+    GameVersions.configure(mode);
+    try { localStorage.setItem("jcc-mode", mode); } catch {}
+    this.load();
   },
   newGame() {
     this.engine = null;
@@ -124,6 +143,9 @@ const Game = {
     UI.closeDialog();
     G = {
       version: 3,
+      mode: GameVersions.current,
+      fortune: { losses: 0, cashouts: 0, lastGold: 0 },
+      chosenOffer: -1,
       round: 0,
       hp: 100,
       gold: 0,
@@ -149,7 +171,7 @@ const Game = {
         gold: 5,
         level: 1,
         roster: [],
-        plan: BOT_PLANS[i],
+        plan: GameVersions.current === "fortune" && i % 3 === 0 ? [...GameVersions.fortuneHeroes, "Garen", "Lulu"] : BOT_PLANS[i],
         streak: 0,
         eliminated: false,
       })),
@@ -168,12 +190,15 @@ const Game = {
   },
   load() {
     try {
-      const data = JSON.parse(this.readStorage(SAVE_KEY));
+      const data = JSON.parse(this.readStorage(this.saveKey()));
       if (
         data?.version === 3 &&
+        (data.mode || "rift") === GameVersions.current &&
         ["prep", "carousel", "over"].includes(data.phase)
       ) {
         G = data;
+        G.fortune ??= { losses: 0, cashouts: 0, lastGold: 0 };
+        G.chosenOffer ??= -1;
         this.uid = G.uid || 0;
         G.paused = true;
         AudioFX.muted = G.muted;
@@ -190,7 +215,7 @@ const Game = {
     try {
       // Resume combat as preparation with the latest purchases and inventory.
       const snapshot = G.phase === "combat" ? { ...G, phase: "prep", prepLeft: 35 } : G;
-      localStorage.setItem(SAVE_KEY, JSON.stringify(snapshot));
+      localStorage.setItem(this.saveKey(), JSON.stringify(snapshot));
     } catch {}
   },
   frame(t) {
@@ -319,8 +344,13 @@ const Game = {
       G.gold -= 2;
       AudioFX.play("refresh");
     }
-    G.shop.filter(Boolean).forEach((id) => G.pool[id]++);
+    G.shop.forEach((id, i) => { if (id) G.pool[id] += G.chosenOffer === i ? 3 : 1; });
+    G.chosenOffer = -1;
     G.shop = Array.from({ length: 5 }, () => this.draw(G.level));
+    if (GameVersions.current === "fortune" && !this.refs().some(r => r.unit.chosen) && Math.random() < 0.4) {
+      const i = G.shop.findIndex(id => id && HEROES[id].traits.includes("fortune") && G.pool[id] >= 2);
+      if (i >= 0) { G.chosenOffer = i; G.pool[G.shop[i]] -= 2; }
+    }
     UI.render();
     this.save();
     return true;
@@ -330,10 +360,12 @@ const Game = {
     const id = G.shop[i];
     if (!id) return;
     const h = HEROES[id],
+      chosen = G.chosenOffer === i,
+      price = h.cost * (chosen ? 3 : 1),
       matches = this.refs().filter(
-        (r) => r.unit.heroId === id && r.unit.star === 1,
+        (r) => r.unit.heroId === id && r.unit.star === (chosen ? 2 : 1),
       );
-    if (G.gold < h.cost) {
+    if (G.gold < price) {
       UI.toast("金币不足");
       return;
     }
@@ -341,9 +373,10 @@ const Game = {
       UI.toast("备战席已满，可先出售或上阵");
       return;
     }
-    G.gold -= h.cost;
+    G.gold -= price;
     G.shop[i] = null;
     const u = this.unit(id);
+    if (chosen) { u.star = 2; u.chosen = "fortune"; G.chosenOffer = -1; }
     if (G.bench.includes(null)) G.bench[G.bench.indexOf(null)] = u;
     else G.bench.push(u);
     this.combine(id);
@@ -365,6 +398,8 @@ const Game = {
       const three = refs.slice(0, 3),
         keep = three[0];
       const equipment = three.flatMap((r) => r.unit.items);
+      const chosen = three.find(r => r.unit.chosen)?.unit.chosen;
+      if (chosen) keep.unit.chosen = chosen;
       three.slice(1).forEach((r) => this.set(r.loc, null));
       keep.unit.star++;
       keep.unit.items = [];
@@ -746,6 +781,20 @@ const Game = {
       Math.max(1, result.survivors.length * 2)
     );
   },
+  settleFortune(win, count) {
+    if (GameVersions.current !== "fortune" || count < 3) return "";
+    const f = G.fortune;
+    if (!win) { f.losses++; return ` · 福星积累 ${f.losses} 败`; }
+    const reward = GameVersions.reward(f.losses, count >= 6);
+    const previous = G.loot || { gold: 0, items: [] };
+    const items = Array.from({ length: reward.components }, () => rand(BASE_ITEMS.filter(id => !["1008", "1010"].includes(id))));
+    if (reward.completed) items.push(rand(Object.keys(ITEMS).filter(id => ITEMS[id].recipe.length && !EMBLEMS[id] && !["2036", "2047", "2048"].includes(id))));
+    G.loot = { ...previous, gold: previous.gold + reward.gold, items: [...previous.items, ...items], fortuneBags: (previous.fortuneBags || 0) + 1 };
+    f.lastGold = reward.gold;
+    f.cashouts++;
+    f.losses = 0;
+    return ` · 福星收菜！${reward.gold} 金币${items.length ? ` + ${items.length} 件装备` : ""}`;
+  },
   finishBattle() {
     const engine = this.engine;
     if (!engine || G.phase !== "combat") return;
@@ -754,6 +803,7 @@ const Game = {
       pvp = roundType(G.round) === "pvp";
     const enemy = G.bots.find((b) => b.id === G.opponent);
     const damage = this.playerDamage(res);
+    const fortuneMessage = pvp ? this.settleFortune(win, this.battleTraitCounts?.fortune || 0) : "";
     G.lastDamage = engine.units
       .filter((u) => u.side === 0 && u.heroId)
       .map((u) => ({
@@ -855,7 +905,7 @@ const Game = {
     AudioFX.play(win ? "win" : "lose");
     const pirateReward = pvp && tierOf("r8", this.battleTraitCounts.r8 || 0)
       ? " · 获得豪侠宝箱" : "";
-    UI.toast((win ? "战斗胜利" : `战斗失利 · 生命 -${damage}`) + pirateReward);
+    UI.toast((win ? "战斗胜利" : `战斗失利 · 生命 -${damage}`) + pirateReward + fortuneMessage);
     if (G.hp <= 0 || G.bots.every((b) => b.hp <= 0)) {
       // Settle pending loot before the final screen disables movement.
       if (G.loot) this.collectLoot();

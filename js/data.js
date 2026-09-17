@@ -2,6 +2,45 @@
 const HEROES = OFFICIAL.heroes,
   ITEMS = OFFICIAL.items,
   TRAITS = OFFICIAL.traits;
+// Keep the original snapshot intact when moving between independently saved modes.
+const GameVersions = {
+  current: "rift",
+  originalHeroes: structuredClone(HEROES),
+  originalTraits: structuredClone(TRAITS),
+  names: { rift: "时空裂痕", fortune: "福星" },
+  fortuneHeroes: ["TahmKench", "Annie", "Katarina", "Jinx", "Sejuani"],
+  configure(mode) {
+    this.current = mode === "fortune" ? "fortune" : "rift";
+    for (const key of Object.keys(HEROES)) delete HEROES[key];
+    for (const key of Object.keys(TRAITS)) delete TRAITS[key];
+    Object.assign(HEROES, structuredClone(this.originalHeroes));
+    Object.assign(TRAITS, structuredClone(this.originalTraits));
+    if (this.current !== "fortune") return;
+    TRAITS.fortune = { id: "fortune", name: "福星", icon: "assets/fortune/fortune.svg",
+      thresholds: [3, 6], desc: "弈士战斗获胜掉落福袋，连败越多，收菜越丰厚。仅开战时激活福星才计入；暂时撤下保留积累。野怪不影响。本地改编规则。",
+      effects: ["3 福星：胜利掉落 3 + 3×连败数 + 连败数² 金币（连败奖励最多按 12 场计算）；每 3 败额外一件基础装备，最多 4 件。", "6 福星：每次胜利额外获得 10 金币和一件随机非纹章成装。福星天选额外计为一名福星。"] };
+    const add = (id, name, template, cost, traits, stats, skill) => {
+      HEROES[id] = { ...structuredClone(HEROES[template]), id, name, cost, traits, ...stats,
+        portrait: `assets/fortune/${id}.png`, splash: `assets/fortune/${id}.jpg`,
+        skill: { ...skill, icon: `assets/fortune/${id}.png` } };
+    };
+    add("TahmKench", "塔姆", "Braum", 1, ["fortune", "j4"],
+      { hp: [700,1260,2268], atk: [60,108,194], armor: 40, mr: 40, mana: 0, startMana: 0 },
+      { name: "厚实表皮", desc: "被动：每次受到伤害减少 [2#0] 点。", values: ["15/25/50"] });
+    add("Annie", "安妮", "Brand", 2, ["fortune", "j10"],
+      { hp: [750,1350,2430], atk: [45,81,146], armor: 40, mr: 40, range: 2, mana: 65, startMana: 0 },
+      { name: "爆裂护盾", desc: "对目标及邻格敌人造成 [2#0] 魔法伤害，并获得持续 6 秒的 [2#1] 护盾。", values: ["250/400/650", "400/600/900"] });
+    for (const id of ["Katarina", "Jinx", "Sejuani"]) HEROES[id].traits = ["fortune", ...HEROES[id].traits.filter(t => t.startsWith("j"))];
+    HEROES.Katarina.name = "卡特琳娜";
+    HEROES.Sejuani.name = "瑟庄妮";
+    Object.assign(HEROES.Jinx, { name: "金克丝", cost: 3, mana: 60, startMana: 0,
+      skill: { name: "震荡火箭", desc: "对目标及邻格敌人造成 [2#0] 魔法伤害并眩晕 [2#1] 秒。", values: ["200/350/600", "1.5/2/3"], icon: "assets/official/skills/Jinx.png" } });
+  },
+  reward(losses, six = false) {
+    const n = Math.min(12, Math.max(0, losses));
+    return { gold: 3 + 3 * n + n * n + (six ? 10 : 0), components: Math.min(4, Math.floor(n / 3)), completed: six ? 1 : 0 };
+  },
+};
 const COLS = 7,
   ROWS = 8,
   BENCH_SIZE = 9,
@@ -124,6 +163,8 @@ function traitCounts(units) {
     seen.add(u.heroId);
     for (const t of unitTraits(u)) cnt[t] = (cnt[t] || 0) + 1;
   }
+  // Count a Chosen bonus even if a duplicate normal copy appeared first.
+  if (units.some(u => u.chosen === "fortune" && HEROES[u.heroId]?.traits.includes("fortune"))) cnt.fortune = (cnt.fortune || 0) + 1;
   return cnt;
 }
 function tierOf(t, n) {
