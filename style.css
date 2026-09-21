@@ -194,6 +194,19 @@ kbd {
 #btnSpeed {
   font-size: 15px;
 }
+.top-actions .ai-toggle {
+  width: auto;
+  padding: 0 12px;
+  font-size: 11px;
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+.top-actions .ai-toggle.on {
+  color: #fff0bd;
+  border-color: #d4b869;
+  background: linear-gradient(135deg, #80672f, #31544d);
+  box-shadow: 0 0 14px #d3b46135;
+}
 .arena-stage {
   position: absolute;
   left: 185px;
@@ -1352,6 +1365,35 @@ kbd {
   float: right;
   letter-spacing: 0;
 }
+#aiStatus {
+  float: right;
+  max-width: 560px;
+  margin-right: 22px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  letter-spacing: 0;
+  color: #91ad9f;
+}
+#aiStatus[data-kind="thinking"] { color: #e5ca89; }
+#aiStatus[data-kind="error"] { color: #ef9a7c; }
+#aiStatus[data-kind="done"] { color: #e8d091; }
+.ai-config { display: grid; gap: 12px; max-width: 560px; }
+.ai-config p { margin: 0 0 4px; color: #aebfb7; line-height: 1.7; }
+.ai-config code { color: #e3ca8f; }
+.ai-config label { color: #e6d39e; font-size: 12px; letter-spacing: 1px; }
+.ai-config input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #7c927b80;
+  border-radius: 7px;
+  background: #07171d;
+  color: #e6eee9;
+  font: 14px Consolas, monospace;
+}
+.ai-config input:focus { outline: 2px solid #bea56770; border-color: #cbb16f; }
+.ai-config small { min-height: 18px; color: #91a99e; }
+.ai-config .primary { justify-self: end; padding: 11px 22px; }
 .battle-banner {
   position: absolute;
   top: 223px;

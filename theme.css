@@ -38,6 +38,7 @@ kbd { border-radius: 4px; background: #06131750; color: #a5b8ae; }
 .top-actions { gap: 7px; }
 .top-actions button { width: 34px; height: 34px; border: 1px solid #657b7338; border-radius: 7px; background: #1d323740; color: #b5c4b6; }
 .top-actions button:hover { background: #2b454a; border-color: #91a08b66; }
+.top-actions .ai-toggle { width: auto; }
 /* Keep the arena's original world coordinates and preserve its darker artwork. */
 .arena-stage { left: 230px; right: 232px; top: var(--main-panels-top); height: 614px; border-radius: 17px; box-shadow: 0 0 0 1px #8d9a7860, 0 8px 25px #00000035; }
 #arena { top: -59px; }

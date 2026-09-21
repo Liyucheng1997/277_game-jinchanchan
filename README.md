@@ -1,4 +1,4 @@
-# 金铲铲 · 时空裂痕 / 福星本地练习版 v1.7
+# 金铲铲 · 时空裂痕 / 福星本地练习版 v1.8
 
 ## 新增：可选福星版本
 
@@ -20,11 +20,31 @@
 
 基于原有网页小游戏重构的单机自走棋。使用经典「时空裂痕」官网数据快照，包含 58 位英雄、25 个羁绊、57 件装备，与 7 名电脑弈士进行淘汰对局。
 
-[在线游玩](https://liyucheng1997.github.io/277_game-jinchanchan/) · [v1.7 版本发布](https://github.com/Liyucheng1997/277_game-jinchanchan/releases/tag/v1.7) · [更新记录](CHANGELOG.md)
+[在线游玩](https://liyucheng1997.github.io/277_game-jinchanchan/) · [v1.8 版本发布](https://github.com/Liyucheng1997/277_game-jinchanchan/releases/tag/v1.8) · [更新记录](CHANGELOG.md)
 
-网站通过现有 GitHub Pages 从 `main` 分支根目录部署。发行版本使用 `v1.7` 标签；存档格式版本仍为 3，两者独立。
+网站通过现有 GitHub Pages 从 `main` 分支根目录部署。发行版本使用 `v1.8` 标签；存档格式版本仍为 3，两者独立。GitHub Pages 在线版可完整手动游玩；AI 接管需要本地 Node 服务代理 TypeSafe 请求，不能仅靠静态页面运行。
 
-本版修复属性详情的装备与羁绊加成展示，按背景石板校准九格备战席，并增加同羁绊英雄与持有状态查询。
+本版新增 TypeSafe Jev AI 接管，由 AI 负责选秀、经济、阵容、装备、羁绊、站位和开战决策，并保留全部手动操作。
+
+## TypeSafe Jev AI 接管
+
+右上角新增 **「AI 接管」**。开启后，TypeSafe 的 Jev 会以最终第一名为目标，根据每一步的结构化对局状态，从游戏生成的合法动作中选择选秀、购买、升级、刷新、装备、阵容替换、站位或结束经营。状态包含当前/候选羁绊、升星进度、英雄职责与技能、装备效果、利息变化、等级商店概率、血量压力和对手预览；站位支持标准前后排、左右抱团与分散阵型。结束经营时会自动补满上阵人口并立即点击准备就绪。规则校验和动作执行仍由本地游戏完成。每回合最多请求 12 次，达到上限也会强制准备就绪，状态变化时会丢弃过期响应，服务异常时自动停止接管并保留手动操作。
+
+API 密钥只由本地 Node 服务读取，不会写入网页代码、浏览器存档或 Git。运行 `npm start` 并打开网页后，点击 **「AI 接管」** 或旁边的齿轮，在密码框中粘贴 Jev API 密钥即可。密钥保存在本机的 `.typesafe.local.json`（已加入 `.gitignore`），保存后立即生效。
+
+也可以选择写入 Windows 用户环境变量；环境变量优先于网页保存的配置，设置后需重启终端或 Codex：
+
+```powershell
+[Environment]::SetEnvironmentVariable('TYPESAFE_API_KEY', '你的-TypeSafe-密钥', 'User')
+```
+
+然后在项目目录启动：
+
+```powershell
+npm start
+```
+
+打开 <http://127.0.0.1:8765/>。可选的 `TYPESAFE_MODEL` 默认为 `jev-latest`，可选的 `TYPESAFE_ENDPOINT` 可覆盖官方 API 地址。不要把密钥写进 `js/` 文件、HTML、Git 仓库或浏览器 `localStorage`。双击 `index.html` 仍可手动游玩，但网页配置和 AI 接管需要通过本地 Node 服务使用。
 
 ## 启动
 
@@ -32,7 +52,7 @@
 
 双击 `index.html`，用 Chrome 或 Edge 打开即可游玩。图片和数据均在本地，不需要安装依赖。
 
-也可在项目目录运行：
+仅手动游玩也可在项目目录运行：
 
 ```powershell
 python -m http.server 8765 --bind 127.0.0.1

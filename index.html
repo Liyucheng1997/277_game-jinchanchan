@@ -8,9 +8,9 @@
       name="description"
       content="金铲铲本地练习版：时空裂痕与福星双版本，独立存档、福星天选、连败收菜与八人策略对局。"
     />
-    <title>金铲铲 · 时空裂痕 v1.7</title>
-    <link rel="stylesheet" href="style.css?v=1.7" />
-    <link rel="stylesheet" href="theme.css?v=1.7" />
+    <title>金铲铲 · 时空裂痕 v1.8</title>
+    <link rel="stylesheet" href="style.css?v=1.8" />
+    <link rel="stylesheet" href="theme.css?v=1.8" />
   </head>
   <body>
     <main id="app">
@@ -18,7 +18,7 @@
         <div class="brand">
           <span class="brand-mark" aria-hidden="true">♜</span>
           <div>金铲铲<span class="brand-sub">时 空 裂 痕</span></div>
-          <span class="edition">本地练习 · v1.7</span>
+          <span class="edition">本地练习 · v1.8</span>
         </div>
         <div class="stage-track">
           <b id="roundLabel">1-1</b>
@@ -27,6 +27,8 @@
           ><span class="timer" id="timer">∞</span>
         </div>
         <nav class="top-actions">
+          <button id="btnAi" class="ai-toggle" title="让 TypeSafe Jev 接管对局" aria-pressed="false">AI 接管</button>
+          <button id="btnAiConfig" title="配置 TypeSafe Jev API" aria-label="配置 TypeSafe Jev API">⚙</button>
           <button id="btnVersion" class="version-switch" title="切换版本，分别保存进度">切换版本</button>
           <button id="btnGuide" title="玩法指南" aria-label="玩法指南">?</button
           ><button id="btnMute" title="切换音效" aria-label="切换音效">♪</button
@@ -130,7 +132,7 @@
       </footer>
       <div class="bottom-note">
         <span id="modeFooter">时空裂痕 · 单机练习</span> <span>右键查看弈子详情</span
-        ><span id="saveStatus">对局自动保存</span>
+        ><span id="aiStatus" data-kind="off">AI 未开启</span><span id="saveStatus">对局自动保存</span>
       </div>
       <div id="carousel" class="carousel-layer" hidden></div>
       <div id="endScreen" hidden></div>
@@ -154,13 +156,14 @@
         <div id="dialogBody"></div>
       </section>
     </div>
-    <script src="js/official-data.js?v=1.7"></script>
-    <script src="js/data.js?v=1.7"></script>
-    <script src="js/combat.js?v=1.7"></script>
-    <script src="js/ui.js?v=1.7"></script>
-    <script src="js/audio-sources.js?v=1.7"></script>
-    <script src="js/game.js?v=1.7"></script>
-    <script src="js/vendor/characters3d.bundle.js?v=1.7"></script>
-    <script src="js/garen-demo.js?v=1.7"></script>
+    <script src="js/official-data.js?v=1.8"></script>
+    <script src="js/data.js?v=1.8"></script>
+    <script src="js/combat.js?v=1.8"></script>
+    <script src="js/ui.js?v=1.8"></script>
+    <script src="js/audio-sources.js?v=1.8"></script>
+    <script src="js/game.js?v=1.8"></script>
+    <script src="js/typesafe-ai.js?v=1.8"></script>
+    <script src="js/vendor/characters3d.bundle.js?v=1.8"></script>
+    <script src="js/garen-demo.js?v=1.8"></script>
   </body>
 </html>

@@ -2,3 +2,4 @@ tmp/
 official-page.tmp
 __pycache__/
 *.pyc
+.typesafe.local.json

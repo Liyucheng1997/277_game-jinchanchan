@@ -180,7 +180,7 @@ const UI = {
     document.body.classList.toggle("fortune-mode", fortune);
     document.title = `金铲铲 · ${GameVersions.names[GameVersions.current]}`;
     $(".brand-sub").textContent = GameVersions.names[GameVersions.current];
-    $(".edition").textContent = fortune ? "本地改编 · v1.7" : "本地练习 · v1.7";
+    $(".edition").textContent = fortune ? "本地改编 · v1.8" : "本地练习 · v1.8";
     $(".arena-caption span").textContent = `· ${GameVersions.names[GameVersions.current]}`;
     $("#dialogEyebrow").textContent = GameVersions.names[GameVersions.current];
     $("#modeFooter").textContent = fortune ? "福星 · 本地改编" : "时空裂痕 · 单机练习";
