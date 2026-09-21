@@ -7,10 +7,14 @@ const TypeSafeAI = {
   localService: null,
   timer: null,
   decisions: 0,
+  apiDecisions: 0,
   decisionRound: null,
   holdKey: null,
   formationRound: null,
+  swapRound: null,
   last: null,
+  plan: null,
+  planGame: null,
 
   init() {
     const button = document.querySelector("#btnAi");
@@ -42,7 +46,12 @@ const TypeSafeAI = {
     this.enabled = next;
     this.holdKey = null;
     this.decisions = 0;
+    this.apiDecisions = 0;
     this.decisionRound = null;
+    if (next && this.planGame !== G?.uid) {
+      this.plan = null;
+      this.planGame = G?.uid;
+    }
     if (this.enabled && G?.paused) {
       G.paused = false;
       UI.renderPanels();
@@ -166,6 +175,7 @@ const TypeSafeAI = {
   },
 
   state() {
+    const plan = this.ensurePlan();
     const board = Object.entries(G.board).map(([position, unit]) => ({ position, ...this.hero(unit) }));
     const bench = G.bench.map((unit, slot) => unit ? { slot, ...this.hero(unit) } : null).filter(Boolean);
     const counts = traitCounts(Object.values(G.board));
@@ -198,7 +208,148 @@ const TypeSafeAI = {
       opponent_preview: opponent,
       recent_results: G.history.slice(-5),
       remaining_players: 1 + G.bots.filter((b) => b.hp > 0).length,
+      strategy_plan: plan ? {
+        primary_trait: TRAITS[plan.primary]?.name || plan.primary,
+        secondary_trait: TRAITS[plan.secondary]?.name || plan.secondary,
+        carry: plan.carry ? HEROES[plan.carry]?.name : null,
+        tank: plan.tank ? HEROES[plan.tank]?.name : null,
+        target_heroes: plan.heroes.map((id) => HEROES[id]?.name || id),
+        gold_floor: this.goldFloor(),
+      } : null,
     };
+  },
+
+  ensurePlan() {
+    if (!G) return null;
+    const refs = Game.refs();
+    if (!refs.length) return this.plan;
+    const unique = new Map();
+    for (const ref of refs) {
+      const old = unique.get(ref.unit.heroId);
+      if (!old || old.star < ref.unit.star) unique.set(ref.unit.heroId, ref.unit);
+    }
+    const scores = {};
+    for (const unit of unique.values()) {
+      const weight = unit.star * 3 + HEROES[unit.heroId].cost * 0.6 + (unit.chosen ? 5 : 0);
+      for (const trait of unitTraits(unit)) scores[trait] = (scores[trait] || 0) + weight;
+    }
+    const ranked = Object.keys(scores).sort((a, b) => scores[b] - scores[a]);
+    let primary = ranked[0];
+    if (this.plan?.primary && scores[this.plan.primary] >= (scores[primary] || 0) * 0.8)
+      primary = this.plan.primary;
+    const secondary = ranked.filter((id) => id !== primary).sort((a, b) => {
+      const linked = (id) => [...unique.values()].filter((u) => unitTraits(u).includes(primary) && unitTraits(u).includes(id)).length;
+      return linked(b) - linked(a) || scores[b] - scores[a];
+    })[0] || null;
+    const candidates = [...unique.values()].filter((u) => unitTraits(u).includes(primary));
+    const carry = candidates.slice().sort((a, b) =>
+      (HEROES[b.heroId].range > 1) - (HEROES[a.heroId].range > 1) ||
+      b.star - a.star || HEROES[b.heroId].cost - HEROES[a.heroId].cost)[0];
+    const tank = candidates.slice().sort((a, b) =>
+      (HEROES[a.heroId].range > 1) - (HEROES[b.heroId].range > 1) ||
+      b.star - a.star || HEROES[b.heroId].cost - HEROES[a.heroId].cost)[0];
+    const heroes = Object.values(HEROES)
+      .filter((h) => h.traits.includes(primary) || (secondary && h.traits.includes(primary) && h.traits.includes(secondary)))
+      .sort((a, b) => Number(b.traits.includes(secondary)) - Number(a.traits.includes(secondary)) || b.cost - a.cost)
+      .slice(0, 12).map((h) => h.id);
+    this.plan = { primary, secondary, carry: carry?.heroId || null, tank: tank?.heroId || null, heroes };
+    return this.plan;
+  },
+
+  goldFloor() {
+    if (!G) return 0;
+    if (G.hp <= 35) return 0;
+    if (G.hp <= 60 || G.streak <= -3) return 10;
+    if (stageOf(G.round) <= 2) return 20;
+    if (stageOf(G.round) >= 5) return 20;
+    return 40;
+  },
+
+  lineupScore(units) {
+    const plan = this.ensurePlan();
+    let score = units.reduce((sum, unit) => sum + Game.strength(unit), 0);
+    const counts = traitCounts(units);
+    for (const [id, count] of Object.entries(counts)) {
+      const reached = (TRAITS[id]?.thresholds || []).filter((n) => count >= n);
+      score += reached.reduce((sum, n) => sum + n * 5, 0);
+      if (id === plan?.primary) score += count * 2;
+      if (id === plan?.secondary) score += count;
+    }
+    return score;
+  },
+
+  buyScore(slot) {
+    const id = G.shop[slot];
+    if (!id) return -Infinity;
+    const hint = Game.upgradeHint(id), plan = this.ensurePlan(), h = HEROES[id];
+    const owned = Game.refs().some((r) => r.unit.heroId === id);
+    return (hint.star ? 100 : 0) + (hint.pair ? 32 : 0) + (G.chosenOffer === slot ? 45 : 0) +
+      (plan?.heroes.includes(id) ? 24 : 0) + (h.traits.includes(plan?.primary) ? 18 : 0) +
+      (h.traits.includes(plan?.secondary) ? 8 : 0) + (owned ? 10 : 0) + h.cost * 2;
+  },
+
+  targetLevel() {
+    return Math.min(MAX_LEVEL, stageOf(G.round) + 2 + (stepOf(G.round) >= 5 ? 1 : 0));
+  },
+
+  canEquip(unit, id) {
+    if (!unit || !ITEMS[id] || unit.items.includes("2044")) return false;
+    if (EMBLEMS[id] && unitTraits(unit).includes(EMBLEMS[id])) return false;
+    if (ITEMS[id].recipe.length) return unit.items.length < 3 && !(id === "2044" && unit.items.length);
+    const combines = unit.items.some((old) => !ITEMS[old].recipe.length && RECIPES[[old, id].sort().join("+")]);
+    return combines || unit.items.length < 3;
+  },
+
+  bestEquipAction(itemSlot) {
+    const id = G.items[itemSlot], plan = this.ensurePlan();
+    if (!id) return null;
+    const text = `${ITEMS[id].basic} ${ITEMS[id].desc}`;
+    const offense = /攻击|法强|暴击|攻速|法力|伤害/.test(text);
+    const defense = /生命|护甲|魔抗|减伤|护盾|治疗/.test(text);
+    const refs = Game.refs().filter((ref) => this.canEquip(ref.unit, id));
+    const target = refs.sort((a, b) => {
+      const score = (u) => Game.strength(u) + u.star * 8 + HEROES[u.heroId].cost * 2 +
+        (offense && u.heroId === plan?.carry ? 30 : 0) + (defense && u.heroId === plan?.tank ? 30 : 0) +
+        (offense && HEROES[u.heroId].range > 1 ? 10 : 0) + (defense && HEROES[u.heroId].range === 1 ? 10 : 0) - u.items.length * 3;
+      return score(b.unit) - score(a.unit);
+    })[0];
+    if (!target) return null;
+    return { id: `equip:${itemSlot}:${target.unit.uid}`, utility: 72,
+      description: `按战略计划把 ${ITEMS[id].name} 给${target.unit.heroId === plan?.carry ? "主C" : target.unit.heroId === plan?.tank ? "主坦" : "最佳适配英雄"} ${HEROES[target.unit.heroId].name}${target.unit.star}星` };
+  },
+
+  bestSwapActions() {
+    const board = Game.refs().filter((r) => r.loc.type === "board");
+    const bench = Game.refs().filter((r) => r.loc.type === "bench");
+    const current = board.map((r) => r.unit), base = this.lineupScore(current), swaps = [];
+    for (const incoming of bench) for (const outgoing of board) {
+      const after = current.filter((u) => u.uid !== outgoing.unit.uid).concat(incoming.unit);
+      const gain = this.lineupScore(after) - base;
+      if (gain > 1) swaps.push({ id: `swap:${incoming.loc.idx}:${outgoing.unit.uid}`, utility: 55 + Math.min(30, gain),
+        description: `执行计划换阵：${HEROES[incoming.unit.heroId].name}${incoming.unit.star}星替换${HEROES[outgoing.unit.heroId].name}${outgoing.unit.star}星，预计阵容评分 +${gain.toFixed(1)}；羁绊：${this.traitSummary(after)}` });
+    }
+    return swaps.sort((a, b) => b.utility - a.utility).slice(0, 2);
+  },
+
+  shouldReroll() {
+    const pairs = Game.refs().some((r) => Game.upgradeHint(r.unit.heroId).pair);
+    return G.gold - 2 >= this.goldFloor() && (G.hp < 70 || G.streak <= -2 || pairs || G.level >= this.targetLevel());
+  },
+
+  readyAllowed(actions) {
+    if (G.loot || Object.keys(G.board).length < Game.capacity()) return false;
+    if (actions.some((a) => /^(equip|swap|collect|deploy):?/.test(a.id))) return false;
+    const urgentBuy = actions.some((a) => a.id.startsWith("buy:") && a.utility >= 80);
+    if (urgentBuy) return false;
+    if ((G.hp < 70 || G.streak <= -2) && G.gold > this.goldFloor() + 3) return false;
+    return true;
+  },
+
+  resolveAction(result, actions) {
+    const selected = actions.find((x) => x.id === result.action);
+    if (!selected) return null;
+    if (Number(result.confidence) >= 0.25) return selected;
+    return actions.slice().sort((a, b) => (b.utility || 0) - (a.utility || 0))[0] || selected;
   },
 
   traitSummary(units) {
@@ -233,51 +384,41 @@ const TypeSafeAI = {
     if (G.phase === "carousel") {
       return G.carousel.map((choice, slot) => ({ choice, slot })).filter((x) => !x.choice.taken).map(({ choice, slot }) => {
         const h = HEROES[choice.heroId];
-        return { id: `carousel:${slot}`, description: `选择 ${h.name}（${h.cost}费，${h.traits.map((t) => TRAITS[t].name).join("/")}），携带 ${ITEMS[choice.item].name}` };
+        return { id: `carousel:${slot}`, utility: h.cost * 4 + (ITEMS[choice.item].recipe.length ? 8 : 0), description: `选择 ${h.name}（${h.cost}费，${h.traits.map((t) => TRAITS[t].name).join("/")}），携带 ${ITEMS[choice.item].name}` };
       });
     }
     if (G.phase !== "prep") return [];
     const actions = [];
-    if (G.loot) actions.push({ id: "collect", description: `领取待收集战利品：${G.loot.gold}金币和${G.loot.items.length}件装备` });
+    const plan = this.ensurePlan();
+    if (G.loot) actions.push({ id: "collect", utility: 1000, description: `领取待收集战利品：${G.loot.gold}金币和${G.loot.items.length}件装备` });
+    const buys = [];
     G.shop.forEach((id, slot) => {
       if (!id || !this.canBuy(slot)) return;
       const h = HEROES[id], price = h.cost * (G.chosenOffer === slot ? 3 : 1), hint = Game.upgradeHint(id);
       const owned = Game.refs().filter((r) => r.unit.heroId === id).reduce((n, r) => n + 3 ** (r.unit.star - 1), 0);
-      actions.push({ id: `buy:${slot}`, description: `购买 ${h.name}（${h.cost}费，${h.traits.map((t) => TRAITS[t].name).join("/")}，当前等价持有${owned}张）；${hint.star ? `立即合成${hint.star}星，强升级` : hint.pair ? "补充对子/追三星进度" : "新增阵容候选"}；${this.economyImpact(price)}` });
+      const utility = this.buyScore(slot);
+      buys.push({ id: `buy:${slot}`, utility, description: `围绕${TRAITS[plan?.primary]?.name || "当前"}阵容购买 ${h.name}（${h.cost}费，${h.traits.map((t) => TRAITS[t].name).join("/")}，当前等价持有${owned}张）；${hint.star ? `立即合成${hint.star}星` : hint.pair ? "补充对子" : plan?.heroes.includes(id) ? "计划内英雄" : "过渡英雄"}；${this.economyImpact(price)}` });
     });
-    if (G.gold >= 4 && G.level < MAX_LEVEL)
-      actions.push({ id: "xp", description: `购买4经验；当前${G.level}级 ${G.xp}/${XP_REQ[G.level]}，升级后可增加上阵人口并提高高费牌概率；${this.economyImpact(4)}` });
-    if (G.gold >= 2)
-      actions.push({ id: "reroll", description: `刷新五张商店牌，适合寻找对子升星、核心卡或紧急止血；${this.economyImpact(2)}` });
+    actions.push(...buys.sort((a, b) => b.utility - a.utility).slice(0, 3));
+    if (G.gold >= 4 && G.level < this.targetLevel() && G.gold - 4 >= this.goldFloor())
+      actions.push({ id: "xp", utility: 58, description: `按计划提升人口：当前${G.level}级，目标${this.targetLevel()}级；${this.economyImpact(4)}` });
+    if (G.gold >= 2 && this.shouldReroll())
+      actions.push({ id: "reroll", utility: G.hp <= 35 ? 78 : 48, description: `围绕${TRAITS[plan?.primary]?.name || "核心"}阵容刷新商店；当前经济底线${this.goldFloor()}；${this.economyImpact(2)}` });
     if (G.bench.some(Boolean) && Object.keys(G.board).length < Game.capacity())
-      actions.push({ id: "deploy", description: `补满上阵人口；当前场上${Object.keys(G.board).length}/${Game.capacity()}，会优先让近战站前、远程站后` });
+      actions.push({ id: "deploy", utility: 200, description: `立即补满上阵人口；当前场上${Object.keys(G.board).length}/${Game.capacity()}` });
     const boardRefs = Game.refs().filter((r) => r.loc.type === "board");
-    G.bench.forEach((unit, slot) => {
-      if (!unit) return;
-      for (const ref of boardRefs) {
-        const afterUnits = boardRefs.filter((x) => x.unit.uid !== ref.unit.uid).map((x) => x.unit).concat(unit);
-        actions.push({ id: `swap:${slot}:${ref.unit.uid}`, description: `用备战席 ${HEROES[unit.heroId].name}${unit.star}星（强度${Game.strength(unit)}）替换场上 ${HEROES[ref.unit.heroId].name}${ref.unit.star}星（强度${Game.strength(ref.unit)}）；替换后羁绊：${this.traitSummary(afterUnits)}` });
-      }
-      if (!G.bench.includes(null) || G.gold < 2)
-        actions.push({ id: `sell:${slot}`, description: `出售备战席 ${HEROES[unit.heroId].name}${unit.star}星，获得${Game.sellPrice(unit)}金币并腾出格子` });
-    });
-    const equipTargets = Game.refs().slice(0, 12);
-    G.items.slice(0, 3).forEach((id, itemSlot) => {
-      equipTargets.forEach((ref) => {
-        if (ref.unit.items.length >= 3 || ref.unit.items.includes("2044")) return;
-        actions.push({ id: `equip:${itemSlot}:${ref.unit.uid}`, description: `把 ${ITEMS[id].name}（${ITEMS[id].basic}；${ITEMS[id].desc}）给 ${HEROES[ref.unit.heroId].name}${ref.unit.star}星；职责${HEROES[ref.unit.heroId].range > 1 ? "后排输出/施法" : "前排/近战"}，技能${HEROES[ref.unit.heroId].skill.name}，现有装备：${ref.unit.items.map((x) => ITEMS[x].name).join("、") || "无"}` });
-      });
-    });
-    if (boardRefs.length > 1 && this.formationRound !== this.roundKey()) {
-      actions.push(
-        { id: "formation:standard", description: "采用标准前后排：近战和坦克居中顶前，远程核心居中沉底；适合多数均衡对局" },
-        { id: "formation:left", description: "采用左侧抱团：核心缩在左后角，前排在左前方保护；适合把伤害集中到单侧或保护脆弱核心" },
-        { id: "formation:right", description: "采用右侧抱团：核心缩在右后角，前排在右前方保护；适合针对对手另一侧薄弱点" },
-        { id: "formation:spread", description: "采用分散站位：弈子横向拉开，降低范围技能同时命中多人的风险" },
-      );
+    if (this.swapRound !== this.roundKey()) actions.push(...this.bestSwapActions());
+    G.items.slice(0, 2).forEach((id, itemSlot) => { const action = this.bestEquipAction(itemSlot); if (action) actions.push(action); });
+    if (!G.bench.includes(null)) {
+      const sell = Game.refs().filter((r) => r.loc.type === "bench" && !plan?.heroes.includes(r.unit.heroId))
+        .sort((a, b) => Game.strength(a.unit) - Game.strength(b.unit))[0];
+      if (sell) actions.push({ id: `sell:${sell.loc.idx}`, utility: 65, description: `出售计划外的 ${HEROES[sell.unit.heroId].name}，腾出备战席并回收${Game.sellPrice(sell.unit)}金币` });
     }
-    actions.push({ id: "ready", description: "经营操作已经完成：先自动补满上阵人口，然后点击准备就绪并立即开战" });
-    return actions.slice(0, 200);
+    if (boardRefs.length > 1 && this.formationRound !== this.roundKey()) {
+      actions.push({ id: "formation:standard", utility: 20, description: `按计划采用标准前后排：主坦${plan?.tank ? HEROES[plan.tank].name : "近战"}顶前，主C${plan?.carry ? HEROES[plan.carry].name : "远程"}沉底受保护` });
+    }
+    if (this.readyAllowed(actions)) actions.push({ id: "ready", utility: 1, description: `计划检查完成：阵容已补满、无紧急升级或装备操作，保留${this.goldFloor()}金币底线并准备开战` });
+    return actions.sort((a, b) => (b.utility || 0) - (a.utility || 0)).slice(0, 14);
   },
 
   findByUid(uid) {
@@ -315,7 +456,9 @@ const TypeSafeAI = {
     if (kind === "sell") return Game.sell({ type: "bench", idx: Number(a) });
     if (kind === "swap") {
       const target = this.findByUid(b);
-      return target?.loc.type === "board" && Game.move({ type: "bench", idx: Number(a) }, target.loc);
+      const moved = target?.loc.type === "board" && Game.move({ type: "bench", idx: Number(a) }, target.loc);
+      if (moved) this.swapRound = this.roundKey();
+      return moved;
     }
     if (kind === "equip") {
       const target = this.findByUid(b);
@@ -351,6 +494,7 @@ const TypeSafeAI = {
     if (this.decisionRound !== roundKey) {
       this.decisionRound = roundKey;
       this.decisions = 0;
+      this.apiDecisions = 0;
       this.holdKey = null;
     }
     if (this.holdKey === roundKey) {
@@ -364,9 +508,17 @@ const TypeSafeAI = {
     const actions = this.actions();
     if (actions.length === 1) {
       this.apply(actions[0].id);
+      this.decisions++;
       return this.schedule(500);
     }
     if (actions.length < 2) return this.schedule(1000);
+    const automatic = actions[0];
+    if ((automatic.utility || 0) >= 150 || this.apiDecisions >= 3) {
+      this.status(`战略执行：${automatic.description}`, "on");
+      this.apply(automatic.id);
+      this.decisions++;
+      return this.schedule(350);
+    }
     const before = this.fingerprint();
     this.busy = true;
     this.render();
@@ -382,11 +534,13 @@ const TypeSafeAI = {
       if (!this.enabled || before !== this.fingerprint()) {
         this.status("状态已变化 · 已丢弃过期决策", "on");
       } else {
-        const action = actions.find((x) => x.id === result.action);
+        const action = this.resolveAction(result, actions);
         if (!action) throw new Error("服务返回了未知动作");
         this.last = result;
         this.decisions++;
-        this.status(`Jev：${action.description} · ${Math.round(result.confidence * 100)}%`, "on");
+        this.apiDecisions++;
+        const fallback = action.id !== result.action ? " · 战略兜底" : "";
+        this.status(`Jev：${action.description} · ${Math.round(result.confidence * 100)}%${fallback}`, "on");
         this.apply(action.id);
       }
     } catch (error) {

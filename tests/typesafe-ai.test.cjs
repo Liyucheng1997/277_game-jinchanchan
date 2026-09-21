@@ -112,11 +112,10 @@ test("AI exposes legal carousel and preparation actions and applies them through
   run(`TypeSafeAI.apply(${JSON.stringify(carousel[0].id)})`);
   assert.equal(run("G.phase"), "prep");
   assert.doesNotThrow(() => run("TypeSafeAI.state()"));
-  run("G.gold=20; G.pool.Garen--; G.board['2,4']=Game.unit('Garen'); UI.render();");
+  run("G.gold=40; G.pool.Garen--; G.board['2,4']=Game.unit('Garen'); UI.render();");
   const prep = run("TypeSafeAI.actions()");
   assert.ok(prep.some((action) => action.id === "xp"));
-  assert.ok(prep.some((action) => action.id === "reroll"));
-  assert.ok(prep.some((action) => action.id === "ready"));
+  assert.ok(prep.length <= 14);
   assert.equal(prep.some((action) => action.id === "wait"), false);
   assert.ok(prep.some((action) => action.id.startsWith("formation:")));
   const before = run("G.gold");
@@ -128,4 +127,47 @@ test("AI exposes legal carousel and preparation actions and applies them through
   assert.equal(run("TypeSafeAI.actions().some(a=>a.id.startsWith('formation:'))"), false);
   run("TypeSafeAI.apply('ready')");
   assert.equal(run("G.phase"), "combat");
+});
+
+test("AI keeps a strategic composition plan and bounds noisy atomic choices", () => {
+  const run = gameContext();
+  run(`Game.newGame(); G.muted=true; TypeSafeAI.apply('carousel:0'); G.gold=80; G.hp=25;
+    for (const id of ['Garen','Vayne','Fiora','Lux']) { G.pool[id]--; const u=Game.unit(id); G.bench[G.bench.indexOf(null)]=u; }
+    Game.autoDeploy(); TypeSafeAI.formationRound=TypeSafeAI.roundKey();`);
+  const plan = run("TypeSafeAI.ensurePlan()");
+  assert.ok(plan.primary);
+  assert.ok(plan.heroes.length > 0);
+  const actions = run("TypeSafeAI.actions()");
+  assert.ok(actions.length <= 14);
+  assert.ok(actions.filter((a) => a.id.startsWith("swap:")).length <= 2);
+  assert.ok(actions.filter((a) => a.id.startsWith("equip:")).length <= 2);
+  assert.ok(actions.some((a) => a.id === "reroll"));
+  assert.equal(actions.some((a) => a.id === "ready"), false);
+  assert.ok(run("TypeSafeAI.state().strategy_plan.gold_floor") === 0);
+  const swap = actions.find((a) => a.id.startsWith("swap:"));
+  if (swap) {
+    run(`TypeSafeAI.apply(${JSON.stringify(swap?.id)})`);
+    assert.equal(run("TypeSafeAI.actions().some(a=>a.id.startsWith('swap:'))"), false);
+  }
+});
+
+test("low-confidence Jev choices use the highest-value strategic fallback", () => {
+  const run = gameContext();
+  const picked = run(`TypeSafeAI.resolveAction(
+    {action:'ready',confidence:.11},
+    [{id:'ready',utility:1},{id:'buy:2',utility:100},{id:'formation:standard',utility:20}]
+  ).id`);
+  assert.equal(picked, "buy:2");
+  const trusted = run(`TypeSafeAI.resolveAction(
+    {action:'ready',confidence:.8},
+    [{id:'ready',utility:1},{id:'buy:2',utility:100}]
+  ).id`);
+  assert.equal(trusted, "ready");
+});
+
+test("AI limits Jev calls per round while deterministic executor keeps acting", () => {
+  const run = gameContext();
+  run("Game.newGame(); TypeSafeAI.decisions=0; TypeSafeAI.apiDecisions=3;");
+  assert.equal(run("TypeSafeAI.apiDecisions"), 3);
+  assert.ok(run("TypeSafeAI.actions().every((a,i,x)=>i===0||(x[i-1].utility||0)>=(a.utility||0))"));
 });

@@ -323,6 +323,8 @@ class CombatEngine {
     )[0];
   }
   line(u, t, width = 0.65) {
+    // Delayed casts may resolve after their selected target has died.
+    if (!t) return [];
     const a = Hex.point(u.x, u.y),
       b = Hex.point(t.x, t.y),
       dx = b.x - a.x,
@@ -640,6 +642,8 @@ class CombatEngine {
     return skillValue(u.def, u.star, i, fallback);
   }
   aoe(u, center, damage, r = 1, stun = 0, type = "magic") {
+    // A densest/random target can disappear between targeting and resolution.
+    if (!center) return;
     this.emit("area", {
       unit: u,
       center: { x: center.x, y: center.y },

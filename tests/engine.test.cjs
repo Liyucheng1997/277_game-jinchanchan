@@ -87,6 +87,14 @@ test("all equipment can run in combat and implements valid numeric base stats", 
   run(`
  for(const id of Object.keys(ITEMS)){const e=new CombatEngine([{heroId:'Garen',star:2,items:[id]}],[{heroId:'Morgana',star:2,items:[]}],{visual:false});e.run();if(e.units.some(u=>!Number.isFinite(u.hp)||!Number.isFinite(u.damage)))throw Error('item '+id);}`);
 });
+test("delayed line and area casts safely ignore a target that already died", () => {
+  run(`{
+    const e=new CombatEngine([{heroId:'Pyke',star:2,items:[]}],[{heroId:'Garen',star:1,items:[]}],{visual:false});
+    const caster=e.units[0];
+    if(e.line(caster,null).length!==0)throw Error('missing line target was not ignored');
+    e.aoe(caster,null,100,2);
+  }`);
+});
 test("shared pool remains conserved across carousel, shops, rerolls and battles", () => {
   run(`
  function assertPool(){const count={...G.pool};const add=u=>count[u.heroId]+=3**(u.star-1);Game.refs().forEach(r=>add(r.unit));G.rewards.forEach(add);G.bots.forEach(b=>b.roster.forEach(add));G.shop.filter(Boolean).forEach(id=>count[id]++);if(G.phase==='carousel')G.carousel.filter(c=>!c.taken).forEach(c=>count[c.heroId]++);for(const h of Object.values(HEROES)){if(count[h.id]!==POOL_SIZE[h.cost]||G.pool[h.id]<0)throw Error(h.id+' pool '+count[h.id]+' expected '+POOL_SIZE[h.cost]);}}
