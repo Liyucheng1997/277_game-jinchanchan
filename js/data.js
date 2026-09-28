@@ -7,10 +7,10 @@ const GameVersions = {
   current: "rift",
   originalHeroes: structuredClone(HEROES),
   originalTraits: structuredClone(TRAITS),
-  names: { rift: "时空裂痕", fortune: "福星" },
+  names: { rift: "时空裂痕", fortune: "福星", hextech: "海克斯强化", hyper: "狂暴模式", galaxy: "星系漫游", anomaly: "异变实验室" },
   fortuneHeroes: ["TahmKench", "Annie", "Katarina", "Jinx", "Sejuani"],
   configure(mode) {
-    this.current = mode === "fortune" ? "fortune" : "rift";
+    this.current = Object.hasOwn(this.names, mode) ? mode : "rift";
     for (const key of Object.keys(HEROES)) delete HEROES[key];
     for (const key of Object.keys(TRAITS)) delete TRAITS[key];
     Object.assign(HEROES, structuredClone(this.originalHeroes));
@@ -87,10 +87,13 @@ const Hex = {
     const q = x - (y - (y & 1)) / 2;
     return [q, -q - y, y];
   },
+  // Allocation-free: this runs thousands of times per combat second.
   distance(a, b) {
-    const ac = this.cube(a.x, a.y),
-      bc = this.cube(b.x, b.y);
-    return Math.max(...ac.map((v, i) => Math.abs(v - bc[i])));
+    const aq = a.x - (a.y - (a.y & 1)) / 2,
+      bq = b.x - (b.y - (b.y & 1)) / 2,
+      dq = aq - bq,
+      dy = a.y - b.y;
+    return Math.max(Math.abs(dq), Math.abs(dq + dy), Math.abs(dy));
   },
   neighbors(p) {
     const dirs =

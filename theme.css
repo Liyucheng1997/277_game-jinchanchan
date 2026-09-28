@@ -174,7 +174,7 @@ kbd { border-radius: 4px; background: #06131750; color: #a5b8ae; }
 /* DOM hit targets and health bars remain above the 3D render. */
 .unit.has-3d .unit-portrait { visibility: hidden; }
 .unit.has-3d::before { display: none; }
-.character-3d { position: absolute; width: 160px; height: 160px; left: -46px; bottom: -25px; pointer-events: none; z-index: 1; filter: brightness(1.18) contrast(.96); }
+.character-3d { position: absolute; width: 160px; height: 160px; left: -46px; bottom: -25px; pointer-events: none; z-index: 1; }
 .has-3d .unit-bars, .has-3d .unit-equips, .has-3d .unit-stars, .has-3d .unit-name { z-index: 3; }
 .unit.has-3d.dead { transform: translate(-50%, -90%); opacity: 1; }
 .unit.has-3d.dead .unit-bars, .unit.has-3d.dead .unit-name { visibility: hidden; }
@@ -213,3 +213,60 @@ kbd { border-radius: 4px; background: #06131750; color: #a5b8ae; }
 .fortune-rules p { line-height: 1.85; color: #c4d3ca; }
 .fortune-rules h3 { color: #e9c58c; margin-top: 22px; }
 .chosen-tip { color: #f5cb8e; }
+
+/* Performance: isolate each piece's layout, and status cues for combat. */
+.unit { contain: layout style; }
+.unit.burning .unit-base { box-shadow: 0 0 14px #ff7a3a, inset 0 0 10px #ff9a4a80; }
+.unit.slowed .unit-base { box-shadow: 0 0 12px #8fd8ff, inset 0 0 8px #bfeaff90; }
+#groundFx { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
+/* v1.9 · Six-mode picker. */
+.version-grid.six { grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.version-grid.six .version-card { min-height: 0; padding: 20px; }
+.version-grid.six .version-card strong { font-size: 25px; margin: 10px 0 4px; }
+.version-grid.six .version-card p { font-size: 12.5px; line-height: 1.75; margin: 8px 0; }
+.version-grid.six .version-card b { margin-top: 12px; font-size: 13px; }
+.mode-tagline { display: block; font-style: normal; font-size: 12px; color: #9fd4c4; }
+.hextech-card { background: radial-gradient(ellipse at top right,#3d7dbd55,transparent 70%),linear-gradient(140deg,#1d3150,#111a2c); border-color: #5c8cc4; }
+.hyper-card { background: radial-gradient(ellipse at top right,#d1543a55,transparent 70%),linear-gradient(140deg,#4a2320,#1e1414); border-color: #c46b4d; }
+.galaxy-card { background: radial-gradient(ellipse at top right,#8c5fe055,transparent 70%),linear-gradient(140deg,#281f4a,#120f24); border-color: #8a72d0; }
+.anomaly-card { background: radial-gradient(ellipse at top right,#3fd6a055,transparent 70%),linear-gradient(140deg,#153a33,#0d1c1b); border-color: #47b996; }
+/* Current-mode side panel. */
+.mode-panel { display: block; width: 100%; text-align: left; padding: 12px 14px; border: 1px solid #5c8cc4; border-radius: 12px; background: linear-gradient(130deg,#1d3150,#152233); color: #d9e7f5; cursor: pointer; margin-bottom: 12px; font-size: 11.5px; line-height: 1.7; }
+.mode-panel[hidden] { display: none; }
+.mode-panel > span { display: block; }
+.mode-heading { font-size: 13px; color: #f3d599; margin-bottom: 4px; letter-spacing: 1px; }
+.mode-foot { color: #93a8b8; margin-top: 4px; }
+.mode-muted { color: #93a8b8; }
+.galaxy-name { display: block; font-size: 17px; color: #d7c6ff; }
+body[data-mode="hyper"] .mode-panel { border-color: #c46b4d; background: linear-gradient(130deg,#4a2320,#231818); }
+body[data-mode="galaxy"] .mode-panel { border-color: #8a72d0; background: linear-gradient(130deg,#2b2152,#16122a); }
+body[data-mode="anomaly"] .mode-panel { border-color: #47b996; background: linear-gradient(130deg,#163f37,#0f201e); }
+body:not([data-mode="rift"]):not([data-mode="fortune"]) .left-sidebar { overflow-y: auto; }
+.aug-chip { display: inline-block !important; margin: 2px 4px 2px 0; padding: 1px 8px; border-radius: 10px; font-size: 11px; border: 1px solid; }
+.aug-chip.t1, .choice-card.t1 { border-color: #b9c7d2; color: #e6eef3; }
+.aug-chip.t2, .choice-card.t2 { border-color: #e6c15a; color: #ffe39a; }
+.aug-chip.t3, .choice-card.t3 { border-color: #c38cff; color: #f0dcff; }
+/* Augment / anomaly choice overlay. */
+.mode-choice { position: absolute; left: 50%; top: 150px; transform: translateX(-50%); z-index: 12; width: 860px; padding: 18px 22px 14px; border: 1px solid #7aa3c966; border-radius: 16px; background: #0c1a26f0; box-shadow: 0 16px 60px #000a; text-align: center; }
+.mode-choice[hidden] { display: none; }
+.choice-title h2 { margin: 4px 0 14px; color: #f4dfae; font-size: 22px; letter-spacing: 2px; }
+.choice-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.choice-card { position: relative; padding: 20px 16px 16px; border: 2px solid; border-radius: 14px; background: linear-gradient(160deg,#1a2e44,#0f1a28); cursor: pointer; transition: transform .15s; min-height: 150px; }
+.choice-card.t2 { background: linear-gradient(160deg,#3a3016,#1a160c); }
+.choice-card.t3 { background: linear-gradient(160deg,#35204a,#150f22); }
+.choice-card:hover, .choice-card.picked { transform: translateY(-4px); box-shadow: 0 0 24px currentColor; }
+.choice-card b { display: block; font-size: 17px; margin: 8px 0; }
+.choice-card span { display: block; font-size: 12.5px; line-height: 1.7; color: #d6dfe6; }
+.hex-gem { display: block; width: 34px; height: 38px; margin: 0 auto; background: currentColor; clip-path: polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%); opacity: .85; }
+.choice-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; font-size: 12px; color: #93a8b8; gap: 12px; }
+.choice-foot button { padding: 6px 14px; border: 1px solid #7aa3c9; border-radius: 8px; color: #d9e7f5; background: #1d3150; }
+.choice-foot button:disabled { opacity: .4; cursor: default; }
+.choice-targets { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 12px; }
+.choice-targets button { display: flex; flex-direction: column; align-items: center; width: 74px; padding: 4px; border: 1px solid #47b99688; border-radius: 10px; background: #102a26; color: #d8f5ea; font-size: 11px; }
+.choice-targets button:hover { border-color: #7ff0c8; }
+.choice-targets img { width: 52px; height: 52px; border-radius: 8px; object-fit: cover; }
+/* Anomaly pieces. */
+.unit.anomaly .unit-base { box-shadow: 0 0 16px #5ff0c0, inset 0 0 10px #5ff0c080; }
+.unit.anomaly::after { content: attr(data-anomaly); position: absolute; left: 50%; top: -22px; transform: translateX(-50%); padding: 0 6px; border-radius: 8px; background: #0f3a30e6; color: #9fffd8; font-size: 10px; white-space: nowrap; z-index: 6; pointer-events: none; }
+.unit.anomaly-titanic { scale: 1.18; }
+.bench-slot .unit.anomaly::after { display: none; }

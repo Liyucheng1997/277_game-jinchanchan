@@ -198,7 +198,8 @@ const TypeSafeAI = {
       phase: G.phase,
       seconds_left: Math.max(0, Math.ceil(G.prepLeft || 0)),
       player: { hp: G.hp, gold: G.gold, level: G.level, xp: G.xp, xp_needed: XP_REQ[G.level] || 0, streak: G.streak },
-      economy: { interest_now: Math.min(5, Math.floor(G.gold / 10)), shop_odds_by_cost: ODDS[G.level] },
+      economy: { interest_now: Modes.interest(G.gold), shop_odds_by_cost: ODDS[G.level], reroll_cost: Modes.rollCost(), can_buy_xp: Modes.canBuyXp() },
+      augments: (G.augments || []).map((id) => AUGMENTS[id].name),
       active_traits: Object.entries(counts).map(([id, count]) => ({ name: TRAITS[id]?.name || id, count, active: Boolean(tierOf(id, count)) })),
       board,
       bench,
@@ -388,6 +389,14 @@ const TypeSafeAI = {
       });
     }
     if (G.phase !== "prep") return [];
+    if (G.choice?.kind === "augment")
+      return G.choice.options.map((id, slot) => ({ id: `augment:${slot}`, utility: 300 - slot,
+        description: `选择${AUGMENT_TIERS[G.choice.tier]}海克斯强化「${AUGMENTS[id].name}」：${AUGMENTS[id].desc}` }));
+    if (G.choice?.kind === "anomaly") {
+      const target = Modes.anomalyTargets()[0];
+      return target ? G.choice.options.map((id, slot) => ({ id: `anomaly:${slot}:${target.unit.uid}`, utility: 300 - slot,
+        description: `为${HEROES[target.unit.heroId].name}注入异变「${ANOMALIES[id].name}」：${ANOMALIES[id].desc}` })) : [];
+    }
     const actions = [];
     const plan = this.ensurePlan();
     if (G.loot) actions.push({ id: "collect", utility: 1000, description: `领取待收集战利品：${G.loot.gold}金币和${G.loot.items.length}件装备` });
@@ -400,7 +409,7 @@ const TypeSafeAI = {
       buys.push({ id: `buy:${slot}`, utility, description: `围绕${TRAITS[plan?.primary]?.name || "当前"}阵容购买 ${h.name}（${h.cost}费，${h.traits.map((t) => TRAITS[t].name).join("/")}，当前等价持有${owned}张）；${hint.star ? `立即合成${hint.star}星` : hint.pair ? "补充对子" : plan?.heroes.includes(id) ? "计划内英雄" : "过渡英雄"}；${this.economyImpact(price)}` });
     });
     actions.push(...buys.sort((a, b) => b.utility - a.utility).slice(0, 3));
-    if (G.gold >= 4 && G.level < this.targetLevel() && G.gold - 4 >= this.goldFloor())
+    if (Modes.canBuyXp() && G.gold >= 4 && G.level < this.targetLevel() && G.gold - 4 >= this.goldFloor())
       actions.push({ id: "xp", utility: 58, description: `按计划提升人口：当前${G.level}级，目标${this.targetLevel()}级；${this.economyImpact(4)}` });
     if (G.gold >= 2 && this.shouldReroll())
       actions.push({ id: "reroll", utility: G.hp <= 35 ? 78 : 48, description: `围绕${TRAITS[plan?.primary]?.name || "核心"}阵容刷新商店；当前经济底线${this.goldFloor()}；${this.economyImpact(2)}` });
@@ -448,6 +457,8 @@ const TypeSafeAI = {
     const [kind, a, b] = id.split(":");
     if (kind === "carousel") return Game.chooseCarousel(Number(a));
     if (G.phase !== "prep") return false;
+    if (kind === "augment") return Modes.pickAugment(Number(a));
+    if (kind === "anomaly") return Modes.applyAnomaly(Number(a), Number(b));
     if (kind === "collect") return Game.collectLoot();
     if (kind === "buy" && this.canBuy(Number(a))) return Game.buy(Number(a));
     if (kind === "xp" && G.gold >= 4) return Game.buyXp();

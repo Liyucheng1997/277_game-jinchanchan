@@ -119,7 +119,7 @@ const Game = {
     this.raf = requestAnimationFrame((t) => this.frame(t));
   },
   saveKey() {
-    return GameVersions.current === "fortune" ? "jcc-fortune-v3" : SAVE_KEY;
+    return GameVersions.current === "rift" ? SAVE_KEY : `jcc-${GameVersions.current}-v3`;
   },
   switchVersion(mode) {
     if (!Object.hasOwn(GameVersions.names, mode)) return;
@@ -184,6 +184,7 @@ const Game = {
       uid: 0,
     };
     for (const h of Object.values(HEROES)) G.pool[h.id] = POOL_SIZE[h.cost];
+    Modes.onNewGame(G);
     AudioFX.muted = G.muted;
     this.openCarousel();
     UI.render();
@@ -198,6 +199,8 @@ const Game = {
       ) {
         G = data;
         G.fortune ??= { losses: 0, cashouts: 0, lastGold: 0 };
+        G.maxHp ??= 100;
+        G.augments ??= [];
         G.chosenOffer ??= -1;
         this.uid = G.uid || 0;
         G.paused = true;
@@ -214,7 +217,7 @@ const Game = {
     G.uid = this.uid;
     try {
       // Resume combat as preparation with the latest purchases and inventory.
-      const snapshot = G.phase === "combat" ? { ...G, phase: "prep", prepLeft: 35 } : G;
+      const snapshot = G.phase === "combat" ? { ...G, phase: "prep", prepLeft: Modes.prepTime() } : G;
       localStorage.setItem(this.saveKey(), JSON.stringify(snapshot));
     } catch {}
   },
@@ -226,6 +229,7 @@ const Game = {
       if (G.phase === "prep") {
         G.prepLeft -= dt;
         if (G.prepLeft <= 0) {
+          Modes.autoResolve();
           this.autoDeploy();
           this.startBattle();
         }
@@ -237,6 +241,7 @@ const Game = {
           this.engine.step();
           this.acc -= 1 / 30;
         }
+        this.stepBotBattles(3);
         UI.combatFrame(this.engine, dt);
         if (this.engine.done) {
           this.finishing += dt;
@@ -250,12 +255,30 @@ const Game = {
     window.Characters3D?.frame(dt);
     this.raf = requestAnimationFrame((tt) => this.frame(tt));
   },
+  // Advance background bot duels within a small per-frame time budget.
+  stepBotBattles(budgetMs) {
+    const pending = (this.aiResults || []).filter((p) => p.engine && !p.engine.done);
+    if (!pending.length) return;
+    const until = performance.now() + budgetMs;
+    let i = 0;
+    while (performance.now() < until) {
+      const live = pending.filter((p) => !p.engine.done);
+      if (!live.length) break;
+      for (let n = 0; n < 10; n++) live[i % live.length].engine.step(1 / 30);
+      i++;
+    }
+  },
+  botResult(pair) {
+    if (pair.result) return pair.result;
+    return (pair.result = pair.engine.run());
+  },
   unit(heroId, items = []) {
     return { uid: ++this.uid, heroId, star: 1, items: [...items] };
   },
   capacity() {
     return (
       G.level +
+      (G.bonusSlots || 0) +
       this.refs().reduce(
         (n, r) =>
           n +
@@ -336,12 +359,14 @@ const Game = {
     );
   },
   rollShop(free = false) {
-    if (!free && (!this.canManage() || G.gold < 2)) {
-      if (this.canManage()) UI.toast("刷新需要 2 金币");
+    const cost = G.freeRolls > 0 ? 0 : Modes.rollCost();
+    if (!free && (!this.canManage() || G.gold < cost)) {
+      if (this.canManage()) UI.toast(`刷新需要 ${cost} 金币`);
       return false;
     }
     if (!free) {
-      G.gold -= 2;
+      if (G.freeRolls > 0) G.freeRolls--;
+      else G.gold -= cost;
       AudioFX.play("refresh");
     }
     G.shop.forEach((id, i) => { if (id) G.pool[id] += G.chosenOffer === i ? 3 : 1; });
@@ -526,6 +551,10 @@ const Game = {
   },
   buyXp() {
     if (!this.canManage() || G.level >= MAX_LEVEL) return;
+    if (!Modes.canBuyXp()) {
+      UI.toast("狂暴模式按回合自动升级");
+      return;
+    }
     if (G.gold < 4) {
       UI.toast("购买经验需要 4 金币");
       return;
@@ -707,15 +736,15 @@ const Game = {
     G.carousel = [];
     G.round++;
     if (G.round === 1) {
-      G.gold = 3;
-      this.giveXp(2);
+      G.gold = Modes.is("hyper") ? 5 : 3;
+      if (Modes.canBuyXp()) this.giveXp(2);
       this.autoDeploy();
-    } else this.giveXp(2);
+    } else if (Modes.canBuyXp()) this.giveXp(2);
     this.prepare();
   },
   prepare() {
     G.phase = "prep";
-    G.prepLeft = 35;
+    G.prepLeft = Modes.prepTime();
     this.engine = null;
     UI.selected = null;
     G.bots.forEach((b) => this.manageBot(b));
@@ -724,6 +753,7 @@ const Game = {
       roundType(G.round) === "pvp"
         ? (rand(alive.filter((b) => b.id !== G.lastOpponent)) || alive[0])?.id
         : null;
+    Modes.onPrepare();
     if (!G.locked) this.rollShop(true);
     this.claimRewards();
     UI.render();
@@ -736,6 +766,7 @@ const Game = {
   },
   startBattle() {
     if (G.phase !== "prep") return;
+    Modes.autoResolve();
     this.autoDeploy();
     // Explicit readiness resumes a paused game. Empty boards still resolve a loss.
     G.paused = false;
@@ -743,7 +774,10 @@ const Game = {
     G.phase = "combat";
     UI.selected = null;
     UI.hideTip();
-    this.engine = new CombatEngine(this.boardSpecs(), this.preview());
+    const foe = roundType(G.round) === "pvp" ? G.bots.find((b) => b.id === G.opponent) : null;
+    this.engine = new CombatEngine(this.boardSpecs(), this.preview(), {
+      mods: [Modes.combatMods(-1), Modes.combatMods(foe)],
+    });
     this.battleTraitCounts = traitCounts(Object.values(G.board));
     this.acc = 0;
     this.finishing = 0;
@@ -756,19 +790,22 @@ const Game = {
       while (bots.length >= 2) {
         const a = bots.pop(),
           b = bots.pop();
-        const result = new CombatEngine(this.botArmy(a), this.botArmy(b), {
+        // Bot duels are simulated a slice per frame instead of all at once.
+        const engine = new CombatEngine(this.botArmy(a), this.botArmy(b), {
           visual: false,
-        }).run();
-        this.aiResults.push({ a: a.id, b: b.id, result });
+          mods: [Modes.combatMods(a), Modes.combatMods(b)],
+        });
+        this.aiResults.push({ a: a.id, b: b.id, engine });
       }
       if (bots.length) {
         const a = bots[0],
           b = G.bots.find((b) => b.id === G.opponent);
         if (b) {
-          const result = new CombatEngine(this.botArmy(a), this.botArmy(b), {
+          const engine = new CombatEngine(this.botArmy(a), this.botArmy(b), {
             visual: false,
-          }).run();
-          this.aiResults.push({ a: a.id, b: null, result });
+            mods: [Modes.combatMods(a), Modes.combatMods(b)],
+          });
+          this.aiResults.push({ a: a.id, b: null, engine });
         }
       }
     }
@@ -776,10 +813,9 @@ const Game = {
     UI.renderPanels();
   },
   playerDamage(result) {
-    return (
-      [0, 0, 2, 3, 5, 8, 10][Math.min(6, stageOf(G.round))] +
-      Math.max(1, result.survivors.length * 2)
-    );
+    const survivors = result.survivors.filter((u) => !u.clone).length;
+    return Modes.damage(stageOf(G.round), survivors,
+      [0, 0, 2, 3, 5, 8, 10][Math.min(6, stageOf(G.round))] + Math.max(1, survivors * 2));
   },
   settleFortune(win, count) {
     if (GameVersions.current !== "fortune" || count < 3) return "";
@@ -820,9 +856,10 @@ const Game = {
       for (const pair of this.aiResults) {
         const a = G.bots.find((b) => b.id === pair.a),
           b = G.bots.find((b) => b.id === pair.b),
-          d = this.playerDamage(pair.result);
-        if (pair.result.winner !== 0) a.hp = Math.max(0, a.hp - d);
-        if (b && pair.result.winner !== 1) b.hp = Math.max(0, b.hp - d);
+          result = this.botResult(pair),
+          d = this.playerDamage(result);
+        if (result.winner !== 0) a.hp = Math.max(0, a.hp - d);
+        if (b && result.winner !== 1) b.hp = Math.max(0, b.hp - d);
       }
       const cnt = this.battleTraitCounts;
       if (tierOf("r8", cnt.r8 || 0)) {
@@ -844,14 +881,17 @@ const Game = {
       ).length;
       if (killed) {
         const previous = G.loot || { gold: 0, items: [] };
+        const treasure = Modes.is("galaxy") && G.galaxy === "treasure" ? 2 : 1;
+        const bonus = treasure > 1 && Math.random() < 0.35 ? [Modes.randomCompleted()] : [];
         G.loot = {
           ...previous,
-          gold: previous.gold + 2 + Math.floor(Math.random() * 3),
+          gold: previous.gold + (2 + Math.floor(Math.random() * 3)) * treasure,
           items: [
             ...previous.items,
-            ...Array.from({ length: stageOf(G.round) >= 2 ? 2 : 1 }, () =>
+            ...Array.from({ length: (stageOf(G.round) >= 2 ? 2 : 1) * treasure }, () =>
               rand(BASE_ITEMS.filter((i) => i !== "1010")),
             ),
+            ...bonus,
           ],
         };
       }
@@ -863,9 +903,9 @@ const Game = {
       damage: win ? 0 : damage,
     });
     G.history = G.history.slice(-12);
-    const interest = Math.min(5, Math.floor(G.gold / 10)),
+    const interest = Modes.interest(G.gold),
       streak = Math.abs(G.streak),
-      streakGold = pvp
+      streakGold = pvp && !Modes.is("hyper")
         ? streak >= 5
           ? 3
           : streak >= 4
@@ -875,15 +915,15 @@ const Game = {
               : 0
         : 0,
       base = G.round < 3 ? G.round + 2 : 5;
-    G.income = { base, interest, streak: streakGold, win: pvp && win ? 1 : 0 };
-    G.gold += base + interest + streakGold + G.income.win;
+    G.income = { base, interest, streak: streakGold, win: pvp && win ? 1 : 0, bonus: G.bonusIncome || 0 };
+    G.gold += base + interest + streakGold + G.income.win + G.income.bonus;
     for (const b of G.bots) {
       if (b.hp <= 0 && !b.eliminated) {
         b.eliminated = true;
         b.roster.forEach((u) => this.returnUnit(u));
         b.roster = [];
       } else if (b.hp > 0) {
-        b.gold += 5 + Math.min(5, Math.floor(b.gold / 10));
+        b.gold += 5 + (Modes.is("hyper") ? 0 : Math.min(5, Math.floor(b.gold / 10)));
         if (!pvp) {
           const carry = this.botArmy(b).sort(
             (a, b) => HEROES[b.heroId].range - HEROES[a.heroId].range,
@@ -916,7 +956,7 @@ const Game = {
       return;
     }
     G.round++;
-    this.giveXp(2);
+    if (Modes.canBuyXp()) this.giveXp(2);
     if (roundType(G.round) === "carousel") this.openCarousel();
     else this.prepare();
   },

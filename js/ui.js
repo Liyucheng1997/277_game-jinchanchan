@@ -89,6 +89,7 @@ const UI = {
     $("#btnGuide").onclick = () => this.guide();
     $("#btnVersion").onclick = () => this.versions();
     $("#fortunePanel").onclick = () => this.fortuneGuide();
+    $("#modePanel").onclick = () => this.dialog(`${GameVersions.names[GameVersions.current]} · 玩法说明`, Modes.guideHtml());
     $("#btnRecipes").onclick = () => this.recipes();
     $("#btnHeroes").onclick = () => this.catalog();
     $("#closeDialog").onclick = () => this.closeDialog();
@@ -171,6 +172,7 @@ const UI = {
     this.renderLoot();
     this.renderMascot();
     this.renderCarousel();
+    this.renderModeChoice();
     this.renderEnd();
     this.syncSelection();
   },
@@ -180,10 +182,14 @@ const UI = {
     document.body.classList.toggle("fortune-mode", fortune);
     document.title = `金铲铲 · ${GameVersions.names[GameVersions.current]}`;
     $(".brand-sub").textContent = GameVersions.names[GameVersions.current];
-    $(".edition").textContent = fortune ? "本地改编 · v1.8" : "本地练习 · v1.8";
+    $(".edition").textContent = GameVersions.current === "rift" ? "本地练习 · v1.9" : "本地改编 · v1.9";
     $(".arena-caption span").textContent = `· ${GameVersions.names[GameVersions.current]}`;
     $("#dialogEyebrow").textContent = GameVersions.names[GameVersions.current];
-    $("#modeFooter").textContent = fortune ? "福星 · 本地改编" : "时空裂痕 · 单机练习";
+    $("#modeFooter").textContent = GameVersions.current === "rift" ? "时空裂痕 · 单机练习" : `${GameVersions.names[GameVersions.current]} · 本地改编`;
+    document.body.dataset.mode = GameVersions.current;
+    const modePanel = $("#modePanel"), modeHtml = Modes.panelHtml();
+    modePanel.hidden = !modeHtml;
+    if (modeHtml) modePanel.innerHTML = modeHtml;
     const panel = $("#fortunePanel");
     panel.hidden = !fortune;
     if (fortune) {
@@ -213,12 +219,17 @@ const UI = {
     $("#xpFill").style.width =
       G.level === 9 ? "100%" : (G.xp / XP_REQ[G.level]) * 100 + "%";
     $("#interestDots").innerHTML = Array.from(
-      { length: 5 },
+      { length: Modes.interestCap() },
       (_, i) => `<i class="${G.gold >= (i + 1) * 10 ? "on" : ""}"></i>`,
     ).join("");
-    const interest = Math.min(5, Math.floor(G.gold / 10));
-    $("#incomeText").textContent =
-      `基础 +5   利息 +${interest}   连胜/败 ${G.streak ? Math.abs(G.streak) : "—"}`;
+    const interest = Modes.interest(G.gold);
+    $("#incomeText").textContent = Modes.is("hyper")
+      ? `基础 +5   狂暴模式无利息`
+      : `基础 +5   利息 +${interest}   连胜/败 ${G.streak ? Math.abs(G.streak) : "—"}${G.bonusIncome ? `   工资 +${G.bonusIncome}` : ""}`;
+    $("#rollCost").innerHTML = G.freeRolls > 0 ? `<kbd>D</kbd> 免费 ×${G.freeRolls}` : `<kbd>D</kbd> ◉ ${Modes.rollCost()}`;
+    $("#btnXp").firstElementChild.innerHTML = Modes.canBuyXp() ? "购买经验 <kbd>F</kbd>" : "按回合自动升级";
+    $("#btnXp").lastElementChild.textContent = Modes.canBuyXp() ? "◉ 4" : "";
+    if (!Modes.canBuyXp() && G.level < 9) $("#xpText").textContent = `下次 ${roundName(Math.max(G.round + 1, (Modes.hyperLevel(G.round) - 2) * 3))}`;
     $("#incomeText").title =
       `上回合收入：基础 ${G.income.base}，利息 ${G.income.interest}，连胜/败 ${G.income.streak}，胜利 ${G.income.win}`;
     $("#oddsText").innerHTML = ODDS[G.level]
@@ -238,7 +249,7 @@ const UI = {
       $("#" + id).disabled = !Game.canManage();
     for (const id of ["btnFight", "btnAuto"])
       $("#" + id).disabled = G.phase !== "prep";
-    if (G.level === 9) $("#btnXp").disabled = true;
+    if (G.level === 9 || !Modes.canBuyXp()) $("#btnXp").disabled = true;
     $("#btnFight").innerHTML =
       G.phase === "combat"
         ? "<span>战斗中</span><small>AUTO BATTLE</small>"
@@ -274,11 +285,14 @@ const UI = {
         : G.phase === "combat"
           ? Math.max(0, Math.ceil(60 - (Game.engine?.time || 0)))
           : "∞";
-    $("#timer").textContent = text;
-    $("#timer").classList.toggle(
-      "urgent",
-      G.phase === "prep" && G.prepLeft < 10,
-    );
+    // Called every frame: only touch the DOM when the visible value changes.
+    const urgent = G.phase === "prep" && G.prepLeft < 10;
+    if (this.timerText === text && this.timerUrgent === urgent) return;
+    this.timerText = text;
+    this.timerUrgent = urgent;
+    const timer = $("#timer");
+    timer.textContent = text;
+    timer.classList.toggle("urgent", urgent);
   },
   renderPlayers() {
     const arr = [
@@ -295,7 +309,7 @@ const UI = {
           (p.id === G.opponent ? " target" : "") +
           (p.hp <= 0 ? " eliminated" : ""),
       );
-      d.innerHTML = `<span class="player-position">${i + 1}</span><img class="avatar" src="${OFFICIAL.mascots[(p.id + 1) % OFFICIAL.mascots.length]}" alt=""><div class="player-details"><div class="player-name">${esc(p.name)}</div><div class="player-sub">${p.id === -1 ? "你的棋盘" : p.id === G.opponent ? "本回合对手" : "电脑弈士"} · ${p.level}级</div></div><b class="player-hp">${p.hp}</b><i class="health-line" style="width:${p.hp}%"></i>`;
+      d.innerHTML = `<span class="player-position">${i + 1}</span><img class="avatar" src="${OFFICIAL.mascots[(p.id + 1) % OFFICIAL.mascots.length]}" alt=""><div class="player-details"><div class="player-name">${esc(p.name)}</div><div class="player-sub">${p.id === -1 ? "你的棋盘" : p.id === G.opponent ? "本回合对手" : "电脑弈士"} · ${p.level}级</div></div><b class="player-hp">${p.hp}</b><i class="health-line" style="width:${Math.min(100, (p.hp / (G.maxHp || 100)) * 100)}%"></i>`;
       d.onclick = () => {
         this.scout = this.scout === p.id ? null : p.id;
         this.renderScout();
@@ -452,7 +466,10 @@ const UI = {
     }
     d.tabIndex = loc ? 0 : -1;
     d.classList.toggle('fortune-chosen', u.chosen === 'fortune');
-    d.querySelector('.unit-name').textContent = h.name + (u.chosen ? ' · 天选' : '');
+    d.classList.toggle('anomaly', !!u.anomaly);
+    d.classList.toggle('anomaly-titanic', u.anomaly === 'titanic');
+    d.dataset.anomaly = u.anomaly && typeof ANOMALIES !== 'undefined' ? ANOMALIES[u.anomaly]?.name || '' : '';
+    d.querySelector('.unit-name').textContent = h.name + (u.chosen ? ' · 天选' : '') + (u.clone ? ' · 分身' : '');
     const pair = !!loc && u.star < 3 && Game.refs().filter((r) => r.unit.heroId === u.heroId && r.unit.star === u.star).length >= 2;
     d.classList.toggle('has-pair', pair);
     if (pair && !d.querySelector('.unit-pair')) d.append(make('span', 'unit-pair', '对子'));
@@ -506,6 +523,7 @@ const UI = {
     const layer = $("#unitLayer");
     const keep = new Set();
     this.fx = [];
+    SkillFX.reset();
     this.ctx.clearRect(0, 0, 1250, 740);
     $("#app").classList.remove("combat-active");
     for (const [key, u] of Object.entries(G.board)) {
@@ -548,6 +566,10 @@ const UI = {
   renderMascot() {
     const node = $("#mascot"), m = G.mascot || { x: 202, y: 497 };
     if (!node.firstChild) node.innerHTML = `<img src="${OFFICIAL.mascots[0]}" alt="小小英雄"><span class="mascot-name"></span>`;
+    // Runs every frame while idle; skip identical style writes.
+    const key = `${G.hp}|${Math.round(m.x)}|${Math.round(m.y)}|${!!m.target}`;
+    if (node.renderKey === key && node.firstChild) return;
+    node.renderKey = key;
     node.querySelector(".mascot-name").textContent = `你 · ${G.hp}`;
     node.style.left = m.x - 34 + "px";
     node.style.top = m.y - 68 + "px";
@@ -742,6 +764,22 @@ const UI = {
       panel.append(d);
     });
   },
+  // Hextech augment / Anomaly selection overlay (non-blocking: timer keeps running).
+  renderModeChoice() {
+    const panel = $("#modeChoice"), c = G.choice;
+    panel.hidden = !c || !["prep", "combat"].includes(G.phase);
+    if (panel.hidden) return;
+    if (c.kind === "augment") {
+      panel.innerHTML = `<div class="choice-title"><span class="eyebrow">HEXTECH AUGMENT</span><h2>选择${AUGMENT_TIERS[c.tier]}海克斯强化</h2></div><div class="choice-cards">${c.options.map((id, i) => `<button class="choice-card t${c.tier}" data-pick="${i}"><i class="hex-gem"></i><b>${AUGMENTS[id].name}</b><span>${esc(AUGMENTS[id].desc)}</span></button>`).join("")}</div><div class="choice-foot"><button id="choiceReroll" ${c.rerolls > 0 ? "" : "disabled"}>↻ 重随强化（剩余 ${c.rerolls}）</button><span>备战结束前未选择将自动选第一项</span></div>`;
+      panel.querySelectorAll("[data-pick]").forEach((b) => (b.onclick = () => Modes.pickAugment(Number(b.dataset.pick))));
+      $("#choiceReroll").onclick = () => Modes.rerollAugments();
+      return;
+    }
+    const targets = Modes.anomalyTargets();
+    panel.innerHTML = `<div class="choice-title"><span class="eyebrow">ANOMALY LAB</span><h2>${c.pick === null ? "选择一种异变" : `为「${ANOMALIES[c.options[c.pick]].name}」选择英雄`}</h2></div><div class="choice-cards">${c.options.map((id, i) => `<button class="choice-card t3 ${c.pick === i ? "picked" : ""}" data-anomaly="${i}"><i class="hex-gem"></i><b>${ANOMALIES[id].name}</b><span>${esc(ANOMALIES[id].desc)}</span></button>`).join("")}</div>${c.pick === null ? "" : `<div class="choice-targets">${targets.map((r) => `<button data-target="${r.unit.uid}" title="${HEROES[r.unit.heroId].name}"><img src="${HEROES[r.unit.heroId].portrait}" alt=""><span>${HEROES[r.unit.heroId].name} ${"★".repeat(r.unit.star)}</span></button>`).join("") || "<span>没有可注入的英雄</span>"}</div>`}<div class="choice-foot"><span>异变永久绑定该英雄（升星保留，出售消失）。未选择将自动注入最强上阵英雄。</span></div>`;
+    panel.querySelectorAll("[data-anomaly]").forEach((b) => (b.onclick = () => Modes.chooseAnomaly(Number(b.dataset.anomaly))));
+    panel.querySelectorAll("[data-target]").forEach((b) => (b.onclick = () => Modes.applyAnomaly(c.pick, Number(b.dataset.target))));
+  },
   renderEnd() {
     const panel = $("#endScreen");
     panel.hidden = G.phase !== "over";
@@ -879,11 +917,12 @@ const UI = {
   guide() {
     this.dialog(
       "玩法指南",
-      `<div class="guide-grid"><article><h3>01 · 招募与站位</h3><p>商店招募英雄，拖到棋盘下半区上阵。也可以先点英雄，再点目标格。前排承伤、后排输出；上阵人数由等级决定。三个相同星级英雄自动合成更高星级。</p></article><article><h3>02 · 经营经济</h3><p>刷新商店消耗 2 金币，购买 4 经验消耗 4 金币。每存 10 金币获得 1 利息，上限 5。八名弈士共享有限卡池，出售返还英雄和装备。战斗中也可买牌、刷牌、买经验和整理备战席；升星下场生效。</p></article><article><h3>03 · 装备与羁绊</h3><p>将装备拖给英雄穿戴，每名英雄最多三件。两件小装备自动合成大装备，也可以在装备区点击两个小件合成。拖动悬停可预览成装和效果，松手合成，Esc 取消。相同英雄只计一次羁绊，纹章可增加羁绊。</p></article><article><h3>04 · 对局与选秀</h3><p>35 秒备战结束后自动开战，也可提前准备就绪。选秀中低血量弈士先选。野怪掉落法球，点击让小精灵前往，靠近自动拾取金币和装备；也可点击空地或右键地面移动。生命归零被淘汰，最后的幸存者获胜。</p></article></div><div class="guide-note"><b>快捷键：</b> D 刷新商店 · F 购买经验 · E 出售选中英雄 · 空格开战 · Esc 关闭面板<br>这是本地练习版，对手为电脑。英雄、羁绊、配方及图标来自<a href="https://jcc.qq.com/#/hero" target="_blank" rel="noreferrer">金铲铲官网</a>的时空裂痕数据快照。当前采用平面棋盘和肖像棋子，野怪数值、部分技能时序与装备细节为本地模拟；未包含原作三维模型、骨骼动画和联网服务。</div>`,
+      `<div class="guide-grid"><article><h3>01 · 招募与站位</h3><p>商店招募英雄，拖到棋盘下半区上阵。也可以先点英雄，再点目标格。前排承伤、后排输出；上阵人数由等级决定。三个相同星级英雄自动合成更高星级。</p></article><article><h3>02 · 经营经济</h3><p>刷新商店消耗 2 金币，购买 4 经验消耗 4 金币。每存 10 金币获得 1 利息，上限 5。八名弈士共享有限卡池，出售返还英雄和装备。战斗中也可买牌、刷牌、买经验和整理备战席；升星下场生效。</p></article><article><h3>03 · 装备与羁绊</h3><p>将装备拖给英雄穿戴，每名英雄最多三件。两件小装备自动合成大装备，也可以在装备区点击两个小件合成。拖动悬停可预览成装和效果，松手合成，Esc 取消。相同英雄只计一次羁绊，纹章可增加羁绊。</p></article><article><h3>04 · 对局与选秀</h3><p>35 秒备战结束后自动开战，也可提前准备就绪。选秀中低血量弈士先选。野怪掉落法球，点击让小精灵前往，靠近自动拾取金币和装备；也可点击空地或右键地面移动。生命归零被淘汰，最后的幸存者获胜。</p></article></div><div class="guide-note"><b>玩法：</b>右上角「切换玩法」可选时空裂痕、福星、海克斯强化、狂暴模式、星系漫游、异变实验室，各自独立存档；左侧玩法面板可查看当前玩法规则。<br><b>快捷键：</b> D 刷新商店 · F 购买经验 · E 出售选中英雄 · 空格开战 · Esc 关闭面板<br>这是本地练习版，对手为电脑。英雄、羁绊、配方及图标来自<a href="https://jcc.qq.com/#/hero" target="_blank" rel="noreferrer">金铲铲官网</a>的时空裂痕数据快照。当前采用平面棋盘和肖像棋子，野怪数值、部分技能时序与装备细节为本地模拟；未包含原作三维模型、骨骼动画和联网服务。</div>`,
     );
   },
   versions() {
-    this.dialog("选择你的版本", `<p class="version-intro">两种玩法，两份进度。切换会自动保存当前对局；战斗中的对局恢复到本回合备战。</p><div class="version-grid"><button class="version-card rift-card" data-version="rift"><span class="version-kicker">CLASSIC · 经典</span><strong>时空裂痕</strong><p>熟悉的八人对局，58 位英雄。经营阵容，争夺最后的胜利。</p><span class="version-features">经典羁绊 · 豪侠宝箱 · 原有进度</span><b>${GameVersions.current === 'rift' ? '当前版本 · 返回对局' : '进入时空裂痕 →'}</b></button><button class="version-card fortune-card" data-version="fortune"><span class="version-kicker">FORTUNE · 本地改编</span><strong>福星临门</strong><p>攒一场连败，等一次逆转。集齐福星与天选，赢下战斗大收菜。</p><span class="version-features">3 / 6 福星 · 二星天选 · 独立存档</span><b>${GameVersions.current === 'fortune' ? '当前版本 · 返回对局' : '进入福星版本 →'}</b></button></div><p class="version-note">福星版在时空裂痕基础上加入五名福星英雄与专属机制，保留其他英雄及装备；并非历史赛季完整复刻。塔姆、安妮使用本地二维肖像。</p>`, () => {
+    const extra = Object.entries(MODE_INFO).map(([id, m]) => `<button class="version-card mode-card ${id}-card" data-version="${id}"><span class="version-kicker">${m.kicker}</span><strong>${m.name}</strong><em class="mode-tagline">${m.tagline}</em><p>${m.desc}</p><span class="version-features">${m.features}</span><b>${GameVersions.current === id ? '当前玩法 · 返回对局' : `进入${m.name} →`}</b></button>`).join("");
+    this.dialog("选择你的玩法", `<p class="version-intro">六种玩法，六份独立进度。切换会自动保存当前对局；战斗中的对局恢复到本回合备战。</p><div class="version-grid six"><button class="version-card rift-card" data-version="rift"><span class="version-kicker">CLASSIC · 经典</span><strong>时空裂痕</strong><em class="mode-tagline">原汁原味的八人对局</em><p>熟悉的八人对局，58 位英雄。经营阵容，争夺最后的胜利。</p><span class="version-features">经典羁绊 · 豪侠宝箱 · 原有进度</span><b>${GameVersions.current === 'rift' ? '当前玩法 · 返回对局' : '进入时空裂痕 →'}</b></button><button class="version-card fortune-card" data-version="fortune"><span class="version-kicker">FORTUNE · 福星</span><strong>福星临门</strong><em class="mode-tagline">连败攒福，一波收菜</em><p>攒一场连败，等一次逆转。集齐福星与天选，赢下战斗大收菜。</p><span class="version-features">3 / 6 福星 · 二星天选 · 独立存档</span><b>${GameVersions.current === 'fortune' ? '当前玩法 · 返回对局' : '进入福星版本 →'}</b></button>${extra}</div><p class="version-note">新玩法参考云顶之翼历代经典机制（海克斯强化、狂暴模式、银河星系、异变）进行本地改编，数值为本地设计，并非官方复刻。</p>`, () => {
       document.querySelectorAll('[data-version]').forEach(button => button.onclick = () => {
         if (button.dataset.version === GameVersions.current) this.closeDialog();
         else Game.switchVersion(button.dataset.version);
@@ -988,6 +1027,7 @@ const UI = {
     $("#unitLayer").innerHTML = "";
     this.combatEls.clear();
     this.fx = [];
+    SkillFX.reset();
     this.renderLoot();
     this.renderBench();
     this.renderShop();
@@ -1009,24 +1049,49 @@ const UI = {
     this.combatEls.set(u.fid, d);
   },
   combatFrame(engine, dt) {
+    const now = performance.now();
     for (const u of engine.units) {
       const d = this.combatEls.get(u.fid);
       if (!d) continue;
-      const p = Hex.point(u.x, u.y);
-      d.style.left = p.x + "px";
-      d.style.top = p.y + "px";
-      d.style.zIndex = 5 + u.y;
-      d.querySelector(".unit-health").style.width =
-        Math.max(0, (u.hp / u.maxHp) * 100) + "%";
-      d.querySelector(".unit-mana").style.width =
-        (u.manaMax ? (u.mana / u.manaMax) * 100 : 0) + "%";
-      d.classList.toggle("dead", !u.alive);
-      d.classList.toggle("stunned", engine.has(u, "stun"));
-      d.classList.toggle("shielded", engine.has(u, "shield"));
-      d.classList.toggle(
-        "immune",
-        engine.has(u, "immune") || engine.has(u, "immortal"),
-      );
+      // Cache child nodes and last written values: no per-frame queries or
+      // redundant style writes (each write can invalidate layout/paint).
+      const c = (d.combatCache ??= {});
+      if (!c.hp) {
+        c.hp = d.querySelector(".unit-health");
+        c.mana = d.querySelector(".unit-mana");
+      }
+      const key = u.x * 16 + u.y;
+      if (c.pos !== key) {
+        c.pos = key;
+        const p = Hex.point(u.x, u.y);
+        d.style.left = p.x + "px";
+        d.style.top = p.y + "px";
+        d.style.zIndex = 5 + u.y;
+      }
+      const hp = Math.max(0, Math.round((u.hp / u.maxHp) * 200) / 2);
+      if (c.hpw !== hp) c.hp.style.width = (c.hpw = hp) + "%";
+      const mana = u.manaMax ? Math.round((u.mana / u.manaMax) * 50) * 2 : 0;
+      if (c.mw !== mana) c.mana.style.width = (c.mw = mana) + "%";
+      const flags =
+        (u.alive ? 0 : 1) |
+        (engine.has(u, "stun") ? 2 : 0) |
+        (engine.has(u, "shield") ? 4 : 0) |
+        (engine.has(u, "immune") || engine.has(u, "immortal") ? 8 : 0) |
+        (c.attackUntil > now ? 16 : 0) |
+        (c.castUntil > now ? 32 : 0) |
+        (engine.has(u, "burn") ? 64 : 0) |
+        (engine.has(u, "slow") || engine.has(u, "root") ? 128 : 0);
+      if (c.flags !== flags) {
+        c.flags = flags;
+        d.classList.toggle("dead", !!(flags & 1));
+        d.classList.toggle("stunned", !!(flags & 2));
+        d.classList.toggle("shielded", !!(flags & 4));
+        d.classList.toggle("immune", !!(flags & 8));
+        d.classList.toggle("attacking", !!(flags & 16));
+        d.classList.toggle("casting", !!(flags & 32));
+        d.classList.toggle("burning", !!(flags & 64));
+        d.classList.toggle("slowed", !!(flags & 128));
+      }
     }
     for (const e of engine.events.splice(0)) this.consumeEvent(e);
     this.drawFx(dt);
@@ -1047,221 +1112,93 @@ const UI = {
   },
   consumeEvent(e) {
     window.Characters3D?.event(e);
-    const u = e.unit,
-      p = u ? Hex.point(u.x, u.y) : { x: 0, y: 0 },
-      d = u ? this.combatEls.get(u.fid) : null,
-      color = this.color(u);
+    const F = SkillFX,
+      u = e.unit,
+      color = this.color(u),
+      d = u ? this.combatEls.get(u.fid) : null;
     if (e.type === "spawn") {
       this.addCombatUnit(u);
+      const p = F.P(u, 30);
+      F.burst(p.x, p.y, color, 12, 120, 0.6, 16, { grow: 1 });
       return;
     }
+    if (!u) return;
+    const p = F.P(u, 40);
     if (e.type === "cast") {
-      d?.classList.add("casting");
-      setTimeout(() => d?.classList.remove("casting"), 550);
-      this.fx.push({
-        kind: "text",
-        x: p.x,
-        y: p.y - 94,
-        text: e.name,
-        color: "#f1dfa6",
-        life: 1.1,
-        max: 1.1,
-        size: 12,
-      });
-      this.fx.push({
-        kind: "ring",
-        x: p.x,
-        y: p.y - 10,
-        r: 37,
-        color,
-        life: 0.65,
-        max: 0.65,
-      });
+      if (d) (d.combatCache ??= {}).castUntil = performance.now() + 550;
+      F.banner(u, e.name, heroColor(u.heroId));
+      F.flash(p.x, p.y + 10, 42, heroColor(u.heroId), 0.4);
       AudioFX.play("cast");
+      return;
     }
-    if (
-      (e.type === "damage" && e.amount >= 2) ||
-      (e.type === "heal" && e.amount >= 8) ||
-      e.type === "text"
-    ) {
-      this.fx.push({
-        kind: "text",
-        x: p.x + (Math.random() - 0.5) * 30,
-        y: p.y - 70,
-        text: e.text || (e.type === "heal" ? "+" : "") + Math.round(e.amount),
-        color:
-          e.type === "heal"
-            ? "#9eeaa7"
-            : e.crit
-              ? "#ffe696"
-              : e.kind === "magic"
-                ? "#a8e6ff"
-                : "#f3dfbe",
-        life: 0.85,
-        max: 0.85,
-        size: e.crit ? 20 : 14,
-      });
+    if (e.type === "skill") {
+      const recipe = SKILL_RECIPES[e.hero];
+      try {
+        recipe?.(F, e, u, heroColor(e.hero));
+      } catch (error) {
+        console.warn("skill fx", e.hero, error);
+      }
+      return;
+    }
+    if (e.type === "damage" && e.amount >= 2) {
+      // Tiny damage-over-time ticks are merged by the threshold above.
+      const col = e.crit ? "#ffe696" : e.kind === "magic" ? "#8fd8ff" : e.kind === "true" ? "#ffffff" : "#ffb38a";
+      F.text(p.x + (Math.random() - 0.5) * 34, p.y - 30, Math.round(e.amount) + (e.crit ? "!" : ""), col,
+        e.crit ? 20 : e.amount > 400 ? 17 : 14, { pop: e.crit || e.amount > 400 });
+      return;
+    }
+    if (e.type === "heal" && e.amount >= 8) {
+      F.text(p.x + (Math.random() - 0.5) * 30, p.y - 30, "+" + Math.round(e.amount), "#9eeaa7", 13);
+      if (Math.random() < 0.5) F.burst(p.x, p.y + 20, "#9eeaa7", 4, 40, 0.6, 10, { up: 60 });
+      return;
+    }
+    if (e.type === "text") {
+      F.text(p.x, p.y - 34, e.text, "#f1dfa6", 14);
+      return;
+    }
+    if (e.type === "shield") {
+      F.ring(p.x, p.y + 30, 34, "#9cf4ff", 0.4, 3);
+      return;
     }
     if (e.type === "attack") {
-      d?.classList.add("attacking");
-      setTimeout(() => d?.classList.remove("attacking"), 220);
-      const t = Hex.point(e.target.x, e.target.y);
-      if (e.ranged)
-        this.fx.push({
-          kind: "projectile",
-          x: p.x,
-          y: p.y - 36,
-          tx: t.x,
-          ty: t.y - 36,
-          color,
-          life: 0.28,
-          max: 0.28,
-        });
-      else
-        this.fx.push({
-          kind: "slash",
-          x: t.x,
-          y: t.y - 36,
-          color,
-          life: 0.2,
-          max: 0.2,
-        });
+      if (d) (d.combatCache ??= {}).attackUntil = performance.now() + 220;
+      const t = e.target, style = HERO_STYLE[u.heroId]?.[1] || (e.ranged ? "orb" : "slash");
+      const col = u.heroId ? heroColor(u.heroId) : color, q = F.P(t, 36);
+      if (e.ranged) {
+        const kind = { arrow: "arrow", bullet: "bullet", card: "card", axe: "axe", shuriken: "shuriken", spin: "spin" }[style] || "orb";
+        F.shot(F.P(u, 44), q, col, 0.28, { kind, size: kind === "orb" ? 7 : 8, trail: F.quality > 0.5,
+          hit: (h) => F.burst(h.x, h.y, col, 3, 80, 0.25, 8) });
+      } else F.arcSlash(q.x, q.y, 26, col, 0.2, { width: 5, start: Math.random() * 2 - 3 });
+      return;
     }
     if (e.type === "area") {
-      const c = Hex.point(e.center.x, e.center.y);
-      this.fx.push({
-        kind: "ring",
-        x: c.x,
-        y: c.y,
-        r: 55 * (e.radius || 1),
-        color,
-        life: 0.75,
-        max: 0.75,
-      });
+      const c = F.P(e.center, 0);
+      F.ring(c.x, c.y, 55 * (e.radius || 1), heroColor(u.heroId) || color, 0.5, 3);
+      return;
     }
-    if (e.type === "beam" || e.type === "bolt") {
-      const t = Hex.point(e.target.x, e.target.y);
-      this.fx.push({
-        kind: e.type,
-        x: p.x,
-        y: p.y - 25,
-        tx: t.x,
-        ty: t.y - 25,
-        color,
-        life: 0.4,
-        max: 0.4,
-      });
+    if (e.type === "bolt") {
+      const q = F.P(e.target, 40);
+      if (e.source?.heroId === "Brand")
+        F.shot(p, q, "#ff7a2a", 0.2, { kind: "orb", size: 12, hit: (h) => F.burst(h.x, h.y, "#ff9a3a", 8, 120, 0.4, 12) });
+      else F.lightning(p, q, "#bfe8ff", 0.3);
+      return;
+    }
+    if (e.type === "beam") {
+      // Heroes with a dedicated recipe draw their own beam.
+      if (!SKILL_RECIPES[u.heroId]) F.beam(p, F.P(e.target, 40), color, 8, 0.4);
+      return;
+    }
+    if (e.type === "dash") {
+      F.dash(e.from, u, heroColor(u.heroId) || color, { life: 0.3, width: 10 });
+      return;
     }
     if (e.type === "death") {
-      this.fx.push({
-        kind: "death",
-        x: p.x,
-        y: p.y - 40,
-        color: u.side ? "#f39990" : "#84d8d8",
-        life: 0.8,
-        max: 0.8,
-      });
+      const col = u.side ? "#f39990" : "#84d8d8";
+      F.pillar(p.x, p.y + 40, col, 0.8, 120, 22);
+      F.burst(p.x, p.y, col, 14, 60, 1.1, 12, { up: 90, drag: 1 });
     }
-    if (this.fx.length > 250) this.fx.splice(0, this.fx.length - 250);
   },
   drawFx(dt) {
-    const c = this.ctx;
-    c.clearRect(0, 0, 1250, 740);
-    this.fx = this.fx.filter((f) => {
-      f.life -= dt;
-      return f.life > 0;
-    });
-    for (const f of this.fx) {
-      const t = 1 - f.life / f.max;
-      c.save();
-      c.globalAlpha = Math.min(1, (f.life / f.max) * 2);
-      c.strokeStyle = f.color;
-      c.fillStyle = f.color;
-      c.shadowColor = f.color;
-      c.shadowBlur = 12;
-      c.lineWidth = 2;
-      if (f.kind === "text") {
-        c.shadowColor = "#000";
-        c.shadowBlur = 5;
-        c.font = `600 ${f.size}px 'Microsoft YaHei'`;
-        c.textAlign = "center";
-        c.fillText(f.text, f.x, f.y - t * 32);
-      }
-      if (f.kind === "ring") {
-        c.lineWidth = 3 * (1 - t);
-        c.beginPath();
-        c.ellipse(
-          f.x,
-          f.y,
-          f.r * (0.5 + t * 0.7),
-          f.r * (0.25 + t * 0.35),
-          0,
-          0,
-          Math.PI * 2,
-        );
-        c.stroke();
-        c.globalAlpha *= 0.12;
-        c.fill();
-      }
-      if (f.kind === "projectile") {
-        const x = f.x + (f.tx - f.x) * t,
-          y = f.y + (f.ty - f.y) * t;
-        c.lineWidth = 3;
-        c.beginPath();
-        c.moveTo(x, y);
-        c.lineTo(x - (f.tx - f.x) * 0.1, y - (f.ty - f.y) * 0.1);
-        c.stroke();
-        c.beginPath();
-        c.arc(x, y, 3, 0, 7);
-        c.fill();
-      }
-      if (f.kind === "beam") {
-        c.lineWidth = 5 * (1 - t) + 1;
-        c.beginPath();
-        c.moveTo(f.x, f.y);
-        c.lineTo(f.tx, f.ty);
-        c.stroke();
-        c.strokeStyle = "#fffee8";
-        c.lineWidth = 1;
-        c.stroke();
-      }
-      if (f.kind === "bolt") {
-        c.beginPath();
-        c.moveTo(f.x, f.y);
-        for (let i = 1; i <= 7; i++)
-          c.lineTo(
-            f.x +
-              ((f.tx - f.x) * i) / 7 +
-              (i === 7 ? 0 : Math.sin(i * 19 + t * 30) * 12),
-            f.y + ((f.ty - f.y) * i) / 7,
-          );
-        c.stroke();
-      }
-      if (f.kind === "slash") {
-        c.lineWidth = 5;
-        c.beginPath();
-        c.arc(f.x, f.y, 24, -1.5 + t, 1 + t);
-        c.stroke();
-      }
-      if (f.kind === "death") {
-        c.lineWidth = 4 * (1 - t);
-        c.beginPath();
-        c.moveTo(f.x, f.y + 25);
-        c.lineTo(f.x, f.y - 100 * t);
-        c.stroke();
-        for (let i = 0; i < 7; i++) {
-          c.beginPath();
-          c.arc(
-            f.x + Math.cos(i * 2.4) * t * 30,
-            f.y - t * (40 + i * 7),
-            2,
-            0,
-            7,
-          );
-          c.fill();
-        }
-      }
-      c.restore();
-    }
+    SkillFX.update(this.ctx, dt, G?.phase === "combat" ? G.speed : 1);
   },
 };

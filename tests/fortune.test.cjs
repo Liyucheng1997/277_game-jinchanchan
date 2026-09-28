@@ -8,7 +8,7 @@ function setup() {
   const ctx = vm.createContext({ console, performance, structuredClone, setTimeout, clearTimeout,
     localStorage: { getItem: k => storage.get(k) || null, setItem: (k, v) => storage.set(k, v) },
     window: { addEventListener() {} }, requestAnimationFrame() {}, document: {} });
-  for (const name of ['official-data','data','combat']) vm.runInContext(fs.readFileSync(`js/${name}.js`, 'utf8'), ctx);
+  for (const name of ['official-data','data','modes','combat']) vm.runInContext(fs.readFileSync(`js/${name}.js`, 'utf8'), ctx);
   vm.runInContext('const UI = new Proxy({}, {get: (o,k) => o[k] || (()=>{})});', ctx);
   vm.runInContext(fs.readFileSync('js/game.js', 'utf8'), ctx);
   const run = src => vm.runInContext(src, ctx);

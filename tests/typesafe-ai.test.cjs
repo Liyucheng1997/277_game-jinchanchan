@@ -22,7 +22,7 @@ function gameContext() {
     requestAnimationFrame() {},
     document: { querySelector: () => null },
   });
-  for (const name of ["official-data", "data", "combat"])
+  for (const name of ["official-data", "data", "modes", "combat"])
     vm.runInContext(fs.readFileSync(`js/${name}.js`, "utf8"), ctx);
   vm.runInContext("const UI=new Proxy({selected:null,blocking:false},{get(o,k){return k in o?o[k]:()=>{};}});", ctx);
   vm.runInContext(fs.readFileSync("js/game.js", "utf8"), ctx);

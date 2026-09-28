@@ -6,11 +6,11 @@
     <meta name="theme-color" content="#101e25" />
     <meta
       name="description"
-      content="金铲铲本地练习版：时空裂痕与福星双版本，独立存档、福星天选、连败收菜与八人策略对局。"
+      content="金铲铲本地练习版：时空裂痕、福星、海克斯强化、狂暴模式、星系漫游、异变实验室六种玩法，独立存档与八人策略对局。"
     />
-    <title>金铲铲 · 时空裂痕 v1.8</title>
-    <link rel="stylesheet" href="style.css?v=1.8" />
-    <link rel="stylesheet" href="theme.css?v=1.8" />
+    <title>金铲铲 · 时空裂痕 v1.9</title>
+    <link rel="stylesheet" href="style.css?v=1.9" />
+    <link rel="stylesheet" href="theme.css?v=1.9" />
   </head>
   <body>
     <main id="app">
@@ -18,7 +18,7 @@
         <div class="brand">
           <span class="brand-mark" aria-hidden="true">♜</span>
           <div>金铲铲<span class="brand-sub">时 空 裂 痕</span></div>
-          <span class="edition">本地练习 · v1.8</span>
+          <span class="edition">本地练习 · v1.9</span>
         </div>
         <div class="stage-track">
           <b id="roundLabel">1-1</b>
@@ -29,7 +29,7 @@
         <nav class="top-actions">
           <button id="btnAi" class="ai-toggle" title="让 TypeSafe Jev 接管对局" aria-pressed="false">AI 接管</button>
           <button id="btnAiConfig" title="配置 TypeSafe Jev API" aria-label="配置 TypeSafe Jev API">⚙</button>
-          <button id="btnVersion" class="version-switch" title="切换版本，分别保存进度">切换版本</button>
+          <button id="btnVersion" class="version-switch" title="切换玩法，分别保存进度">切换玩法</button>
           <button id="btnGuide" title="玩法指南" aria-label="玩法指南">?</button
           ><button id="btnMute" title="切换音效" aria-label="切换音效">♪</button
           ><button id="btnPause" title="暂停 / 继续">Ⅱ</button
@@ -47,6 +47,7 @@
           <div class="portal portal-bottom"></div>
           <div id="hexGrid"></div>
           <div class="center-crest">◈</div>
+          <canvas id="groundFx" width="1250" height="740"></canvas>
           <div id="unitLayer"></div>
           <canvas id="effects" width="1250" height="740"></canvas>
           <div id="mascot"></div>
@@ -55,6 +56,7 @@
         </div>
         <div id="opponentTag" class="opponent-tag"></div>
         <div id="battleBanner" class="battle-banner"></div>
+        <div id="modeChoice" class="mode-choice" hidden></div>
         <div id="population" class="population"></div>
         <div class="arena-caption">
           <i></i> 经典竞技场 <span>· 时空裂痕</span>
@@ -62,6 +64,7 @@
       </section>
       <aside class="left-sidebar">
         <button id="fortunePanel" class="fortune-panel" hidden aria-label="查看福星收菜规则"></button>
+        <button id="modePanel" class="mode-panel" hidden aria-label="查看当前玩法规则"></button>
         <div class="sidebar-tabs">
           <button class="active" id="tabTraits">羁绊</button
           ><button id="tabDamage">伤害</button>
@@ -124,7 +127,7 @@
         </div>
         <div class="shop-actions">
           <button id="btnRefresh">
-            <span>刷新商店</span><span><kbd>D</kbd> ◉ 2</span></button
+            <span>刷新商店</span><span id="rollCost"><kbd>D</kbd> ◉ 2</span></button
           ><button id="btnFight">
             <span>准备就绪</span><small>SPACE</small></button
           ><button id="btnAuto">一键上阵</button>
@@ -156,14 +159,16 @@
         <div id="dialogBody"></div>
       </section>
     </div>
-    <script src="js/official-data.js?v=1.8"></script>
-    <script src="js/data.js?v=1.8"></script>
-    <script src="js/combat.js?v=1.8"></script>
-    <script src="js/ui.js?v=1.8"></script>
-    <script src="js/audio-sources.js?v=1.8"></script>
-    <script src="js/game.js?v=1.8"></script>
-    <script src="js/typesafe-ai.js?v=1.8"></script>
-    <script src="js/vendor/characters3d.bundle.js?v=1.8"></script>
-    <script src="js/garen-demo.js?v=1.8"></script>
+    <script src="js/official-data.js?v=1.9"></script>
+    <script src="js/data.js?v=1.9"></script>
+    <script src="js/modes.js?v=1.9"></script>
+    <script src="js/combat.js?v=1.9"></script>
+    <script src="js/skillfx.js?v=1.9"></script>
+    <script src="js/ui.js?v=1.9"></script>
+    <script src="js/audio-sources.js?v=1.9"></script>
+    <script src="js/game.js?v=1.9"></script>
+    <script src="js/typesafe-ai.js?v=1.9"></script>
+    <script src="js/vendor/characters3d.bundle.js?v=1.9"></script>
+    <script src="js/garen-demo.js?v=1.9"></script>
   </body>
 </html>
