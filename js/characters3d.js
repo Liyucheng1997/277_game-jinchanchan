@@ -10,7 +10,11 @@ const modelStore=createModelStore(hashes);
 const RENDER_SIZE=160;
 
 const actors = new Map(), cache = new Map(), queue = [];
-let renderer, failed = false, elapsed = 0, activeLoads = 0;
+// Performance caches: framing (crop) results per model/size, and released
+// skeleton clones per asset so later rounds skip GPU readbacks and cloning.
+const crops = new Map(), pool = new Map();
+let renderer, failed = false, elapsed = 0, activeLoads = 0, evictTimer = 0;
+let frameAvg = 16, interval = 1/30;
 const loader = new GLTFLoader();
 const camera = new THREE.OrthographicCamera(-2.1,2.1,2.1,-2.1,.1,30);
 camera.position.set(0,3.8,6); camera.lookAt(0,.95,0);
@@ -43,12 +47,22 @@ function pump() {
     });
   }
 }
-function release(a) {
-  a.mixer?.stopAllAction(); if (a.root) a.mixer?.uncacheRoot(a.root);
-  a.pet?.mixer.stopAllAction();
+function disposeClone(root) {
   const skeletons = new Set();
-  a.scene?.traverse(o => { if (o.isSkinnedMesh) skeletons.add(o.skeleton); });
+  root.traverse(o => { if (o.isSkinnedMesh) skeletons.add(o.skeleton); });
   skeletons.forEach(s => s.dispose());
+}
+function release(a) {
+  a.mixer?.stopAllAction();
+  a.pet?.mixer.stopAllAction();
+  if (a.root && a.assetPath && cache.get(a.assetPath)?.asset === a.asset) {
+    // Keep the clone warm for the next piece that uses this model.
+    a.scene.remove(a.root);
+    const list = pool.get(a.assetPath) || [];
+    if (list.length < 10) { list.push({root:a.root, mixer:a.mixer}); pool.set(a.assetPath, list); }
+    else { a.mixer.uncacheRoot(a.root); disposeClone(a.root); }
+  } else if (a.root) { a.mixer?.uncacheRoot(a.root); disposeClone(a.root); }
+  if (a.pet) disposeClone(a.pet.root);
   // Geometry and materials belong to the asset cache, not individual actors.
   a.canvas?.remove(); a.el.classList.remove('has-3d','garen-spinning');
   a.el.style.opacity = ''; delete a.el.dataset.animation;
@@ -74,6 +88,8 @@ function evict() {
     });
     geometries.forEach(g=>g.dispose()); materials.forEach(m=>m.dispose());
     textures.forEach(t=>{t.dispose();t.source?.data?.close?.();});
+    for (const p of pool.get(r.config.path) || []) { p.mixer.uncacheRoot(p.root); disposeClone(p.root); }
+    pool.delete(r.config.path);
     cache.delete(r.config.path);
   }
 }
@@ -113,12 +129,23 @@ function initialize(a,config,record) {
   const previousAngle=a.root?.rotation.y;
   if (a.root) release(a);
   a.current=config; a.asset=record.asset; a.assetPath=config.path;
-  a.scene=new THREE.Scene(); a.root=clone(a.asset.scene); a.scene.add(a.root);
-  a.mixer=new THREE.AnimationMixer(a.root);
+  a.scene=new THREE.Scene();
+  const pooled=pool.get(config.path)?.pop();
+  if (pooled) {
+    a.root=pooled.root; a.mixer=pooled.mixer;
+    const b=a.root.userData.base;
+    a.root.position.copy(b.position); a.root.quaternion.copy(b.quaternion); a.root.scale.copy(b.scale);
+  } else {
+    a.root=clone(a.asset.scene);
+    a.root.userData.base={position:a.root.position.clone(),quaternion:a.root.quaternion.clone(),scale:a.root.scale.clone()};
+    a.mixer=new THREE.AnimationMixer(a.root);
+  }
+  a.scene.add(a.root); a.name=''; a.action=null;
   play(a,clipsFor(a).idle);
   // Normalize the posed character, not the bind pose with expanded helper bones.
   a.action.stopFading().setEffectiveWeight(1); a.mixer.update(a.action.getClip().duration*.35);
-  normalize(a.root, (config===a.config.form?2.3:(a.config.height||2))*(1+.07*((a.unit.star||1)-1)), a.config.float||0);
+  const height=(config===a.config.form?2.3:(a.config.height||2))*(1+.07*((a.unit.star||1)-1));
+  normalize(a.root, height, a.config.float||0);
   a.root.rotation.y=previousAngle??(a.side?.3:Math.PI+.3);
   a.canvas=document.createElement('canvas'); a.canvas.width=a.canvas.height=256;
   a.canvas.className='character-3d'; a.canvas.setAttribute('aria-hidden','true');
@@ -128,7 +155,10 @@ function initialize(a,config,record) {
   // visible silhouette as well as geometric bounds, keeping feet on the base.
   let crop=256,ox=0,oy=0;
   const desiredHeight=105*((config===a.config.form?2.3:(a.config.height||2))/2);
-  for(let pass=0;pass<3;pass++) {
+  const cropKey=config.path+'|'+height+'|'+a.side;
+  const known=crops.get(cropKey);
+  if (known) { ({crop,ox,oy}=known); a.camera.setViewOffset(256,256,ox,oy,crop,crop); }
+  else for(let pass=0;pass<3;pass++) {
     renderer.render(a.scene,a.camera);a.ctx.clearRect(0,0,256,256);a.ctx.drawImage(renderer.domElement,0,0);
     const data=a.ctx.getImageData(0,0,256,256).data;
     let left=256,right=0,top=256,bottom=0,count=0;
@@ -139,6 +169,7 @@ function initialize(a,config,record) {
     oy+=crop*(bottom/256)-next*.80;
     crop=next;a.camera.setViewOffset(256,256,ox,oy,crop,crop);
   }
+  if (!known) crops.set(cropKey,{crop,ox,oy});
   a.canvas.width=a.canvas.height=RENDER_SIZE;
   a.el.dataset.model=a.assetPath; a.dirty=true;
   if (config===a.config.form && config.clips.cast && a.unit.alive!==false) {
@@ -192,12 +223,17 @@ const api=window.Characters3D={
     }
   },
   frame(dt) {
-    elapsed+=dt; if(elapsed<1/30)return;
-    const step=elapsed;elapsed=0;
+    // Adaptive rate: slow devices trade 3D animation smoothness for input
+    // responsiveness (30 → 20 → 15 fps) instead of dropping whole frames.
+    frameAvg=frameAvg*.95+Math.min(100,dt*1000)*.05;
+    interval=frameAvg>40?1/15:frameAvg>26?1/20:frameAvg<20?1/30:interval;
+    // Release removed pieces immediately, even on frames that skip rendering.
     for(const [el,a]of actors)if(!el.isConnected){release(a);actors.delete(el);}
+    elapsed+=dt; if(elapsed<interval)return;
+    const step=elapsed;elapsed=0;
     if(failed||!this.enabled)return;
     const paused=G.paused||UI.blocking;
-    let initialized=false;
+    const initStart=performance.now();
     const draws=[];
     for(const [el,a]of actors) {
       try {
@@ -206,7 +242,7 @@ const api=window.Characters3D={
         // Preload the alternate form while its normal form is visible.
         if(a.config.form)assetFor(a.config.form);
         if(record.status==='ready') {
-          if(a.assetPath!==desired.path||!a.mixer){if(initialized)continue;initialize(a,desired,record);initialized=true;}
+          if(a.assetPath!==desired.path||!a.mixer){if(performance.now()-initStart>8)continue;initialize(a,desired,record);}
         } else if(!a.mixer) continue;
         addCompanion(a);
         const combat=!!a.unit.fid&&G.phase==='combat'&&!el.classList.contains('preview');
@@ -239,7 +275,10 @@ const api=window.Characters3D={
         if(a.dead&&a.el.style.opacity==='0')continue;
         const stunned=combat&&Game.engine?.has(u,'stun')&&!a.dead;
         if(paused&&!a.dirty)continue;
-        a.mixer.update(stunned?0:delta);a.pet?.mixer.update(stunned?0:delta);
+        // Bench pieces animate at a lower rate while a battle is on screen.
+        if(!combat&&G.phase==='combat'&&!a.dirty){a.skip=(a.skip||0)+step;if(a.skip<.1)continue;}
+        const adv=delta+(!combat&&G.phase==='combat'?(a.skip||0)-step:0);a.skip=0;
+        a.mixer.update(stunned?0:Math.max(0,adv));a.pet?.mixer.update(stunned?0:Math.max(0,adv));
         draws.push(a);
       } catch(error) {
         release(a);a.broken=true;console.warn('3D actor fallback:',a.unit.heroId,error);
@@ -265,13 +304,16 @@ const api=window.Characters3D={
       });
       renderer.setScissorTest(false);
     }
-    evict();
+    evictTimer+=step; if(evictTimer>1){evictTimer=0;evict();}
   }
 };
 try {
   if(location.protocol==='file:')throw new Error('Use local HTTP server for 3D assets');
   renderer=new THREE.WebGLRenderer({alpha:true,antialias:true,preserveDrawingBuffer:true});
   renderer.setSize(256,256);renderer.setClearColor(0,0);
+  // Brightness used to be a CSS filter on every character canvas, which the
+  // compositor re-applied each frame; tone-map exposure does it in-shader.
+  renderer.toneMapping=THREE.LinearToneMapping;renderer.toneMappingExposure=1.18;
   renderer.domElement.addEventListener('webglcontextlost',()=>{
     failed=true;api.status='fallback';for(const a of actors.values())release(a);
   });

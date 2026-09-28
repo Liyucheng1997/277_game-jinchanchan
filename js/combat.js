@@ -12,10 +12,13 @@ class CombatEngine {
     this.result = null;
     this.damage = {};
     this.visual = options.visual !== false;
+    this.mods = options.mods || [];
     this.addTeam(a, 0);
     this.addTeam(b, 1);
     this.applyTraits(0);
     this.applyTraits(1);
+    this.applyMods(0);
+    this.applyMods(1);
     this.units
       .filter((u) => u.traits.includes("j1") || u.creepId === "wolf")
       .forEach((u) => {
@@ -26,6 +29,10 @@ class CombatEngine {
   emit(type, data) {
     if (this.visual) this.events.push({ type, ...data });
   }
+  // Visual-only skill cue consumed by the per-hero VFX renderer (SkillFX).
+  fx(u, stage, data = {}) {
+    if (this.visual) this.events.push({ type: "skill", unit: u, hero: u.heroId, stage, ...data });
+  }
   addTeam(specs, side) {
     const used = new Set();
     for (const [i, s] of specs.entries()) {
@@ -35,7 +42,7 @@ class CombatEngine {
           ? this.autoPosition(h.range, used, side)
           : { x: s.x, y: s.y };
       used.add(Hex.key(p));
-      this.units.push(this.make(s, side, p));
+      this.addUnit(this.make(s, side, p));
     }
   }
   autoPosition(range, used, side) {
@@ -132,6 +139,7 @@ class CombatEngine {
     if (u.items.includes("2029")) u.maxHp *= 1.08;
     if (u.items.includes("2041")) this.effect(u, "ccImmune", 18);
     if (u.items.includes("2018")) this.shield(u, u.maxHp * 0.25, 8);
+    if (typeof ANOMALIES !== "undefined") ANOMALIES[u.anomaly]?.apply?.(u);
     if (u.items.includes("2023")) u.mana += 20;
     if (u.items.includes("2024")) {
       if (u.range === 1) {
@@ -145,10 +153,27 @@ class CombatEngine {
     u.hp = u.maxHp;
     return u;
   }
+  // Living-unit lists are cached until a unit dies or joins. Callers get
+  // copies so in-place sorting can never disturb the shared cache.
+  addUnit(u) {
+    this.units.push(u);
+    this.aliveCache = null;
+    return u;
+  }
   alive(side) {
-    return this.units.filter(
-      (u) => u.alive && (side === undefined || u.side === side),
-    );
+    if (!this.aliveCache) {
+      const all = [], teams = [[], []];
+      for (const u of this.units)
+        if (u.alive) {
+          all.push(u);
+          teams[u.side].push(u);
+        }
+      this.aliveCache = { all, teams };
+    }
+    return (side === undefined
+      ? this.aliveCache.all
+      : this.aliveCache.teams[side]
+    ).slice();
   }
   enemies(u) {
     return this.alive(1 - u.side).filter((t) => !this.has(t, "untargetable"));
@@ -157,9 +182,15 @@ class CombatEngine {
     return this.alive(u.side);
   }
   nearest(u) {
-    return this.enemies(u).sort(
-      (a, b) => Hex.distance(u, a) - Hex.distance(u, b) || a.hp - b.hp,
-    )[0];
+    let best = null, bestD = Infinity;
+    for (const t of this.enemies(u)) {
+      const d = Hex.distance(u, t);
+      if (d < bestD || (d === bestD && t.hp < best.hp)) {
+        best = t;
+        bestD = d;
+      }
+    }
+    return best || undefined;
   }
   farthest(u) {
     return this.enemies(u).sort(
@@ -271,7 +302,34 @@ class CombatEngine {
       if (p) {
         const golem = this.make({ creepId: "golem" }, side, p);
         golem.tiers = {};
-        this.units.push(golem);
+        this.addUnit(golem);
+      }
+    }
+  }
+  // Mode rules: Hextech augments, galaxy rules and anomaly start effects.
+  applyMods(side) {
+    const mod = this.mods[side] || {};
+    const team = this.alive(side), foes = this.alive(1 - side);
+    if (typeof AUGMENTS !== "undefined")
+      for (const id of mod.augments || []) {
+        const aug = AUGMENTS[id];
+        if (aug?.combat) team.forEach((u) => aug.combat(u, this));
+        if (aug?.foe) foes.forEach((u) => aug.foe(u, this));
+      }
+    if (typeof GALAXIES !== "undefined" && GALAXIES[mod.galaxy]?.combat)
+      team.forEach((u) => GALAXIES[mod.galaxy].combat(u, this));
+    if (typeof ANOMALIES === "undefined") return;
+    for (const u of team) {
+      if (!u.anomaly) continue;
+      ANOMALIES[u.anomaly].start?.(u, this);
+      if (u.anomaly === "clone") {
+        const p = this.freeNear(u);
+        if (p) {
+          const copy = this.make({ heroId: u.heroId, star: u.star, mult: 0.6, items: [] }, side, p);
+          copy.tiers = u.tiers;
+          copy.clone = true;
+          this.addUnit(copy);
+        }
       }
     }
   }
@@ -356,6 +414,7 @@ class CombatEngine {
     if (
       (options.attack ||
         options.crit ||
+        (src.spellCrit && !options.secondary) ||
         src.items.includes("2001") ||
         src.items.includes("2038")) &&
       this.rng() < src.crit
@@ -373,6 +432,8 @@ class CombatEngine {
       n *= resist >= 0 ? 100 / (100 + resist) : 2 - 100 / (100 - resist);
     }
     n *= 1 + src.amp;
+    if (src.spellAmp && !options.attack) n *= 1 + src.spellAmp;
+    if (src.anomaly === "executioner" && t.hp < t.maxHp * 0.4) n *= 1.5;
     if (src.items.includes("2046") && t.range === 1) n *= 1.15;
     n *=
       1 -
@@ -486,6 +547,7 @@ class CombatEngine {
     if (!t.alive) return;
     t.hp = 0;
     t.alive = false;
+    this.aliveCache = null;
     this.emit("death", { unit: t });
     if (t.creepId === "krug")
       this.allies(t)
@@ -527,8 +589,10 @@ class CombatEngine {
         u.stacks.vayneTarget === t.fid
           ? u.stacks.vayne++
           : ((u.stacks.vayneTarget = t.fid), (u.stacks.vayne = 1));
-        if (u.stacks.vayne % 3 === 0)
+        if (u.stacks.vayne % 3 === 0) {
+          this.fx(u, "proc", { target: t });
           this.damageTo(u, t, t.maxHp * this.val(u), "true");
+        }
       }
       if (u.heroId === "Kassadin") {
         t.mana = Math.max(0, t.mana - this.val(u));
@@ -557,7 +621,7 @@ class CombatEngine {
           .sort((a, b) => Hex.distance(a, t) - Hex.distance(b, t))
           .slice(0, this.val(u))
           .forEach((o) => {
-            this.emit("bolt", { unit: t, target: o });
+            this.emit("bolt", { unit: t, target: o, source: u });
             this.damageTo(u, o, u.atk * this.val(u, 1), "phys", {
               secondary: true,
             });
@@ -591,6 +655,11 @@ class CombatEngine {
         u.asBonus += 0.1;
       }
       if (u.items.includes("2012")) this.titan(u);
+      if (u.anomaly === "berserk") u.asBonus += 0.05;
+      if (u.anomaly === "vampire" && !u.stacks.vampire && u.hp < u.maxHp * 0.5) {
+        u.stacks.vampire = 1;
+        u.asBonus += 0.3;
+      }
       if (u.items.includes("2013") && (u.stacks.kraken || 0) < 15) {
         u.stacks.kraken = (u.stacks.kraken || 0) + 1;
         u.atk += u.baseAtk * 0.035;
@@ -668,13 +737,19 @@ class CombatEngine {
     if (!u.bomb) return;
     const b = u.bomb;
     u.bomb = null;
+    this.fx(u, "impact", { target: b.target });
     this.aoe(u, b.target, this.val(u) * u.ap * (1 + b.stacks * 0.5));
   }
   cast(u) {
-    let t = u.target?.alive ? u.target : this.nearest(u);
+    // Every targeting helper below assumes at least one targetable enemy.
+    let t =
+      u.target?.alive && !this.has(u.target, "untargetable")
+        ? u.target
+        : this.nearest(u);
     if (!t) return;
     u.mana = 0;
     u.casts++;
+    const cue = { from: { x: u.x, y: u.y } };
     const v = (i = 0, fallback = 0) => this.val(u, i, fallback),
       d = v() * u.ap,
       enemy = this.enemies(u),
@@ -719,6 +794,7 @@ class CombatEngine {
         this.effect(u, "immune", 1.5);
         this.schedule(1.5, () => {
           if (u.alive) {
+            this.fx(u, "impact", { target: t });
             hit(t);
             this.effect(t, "stun", v(1, 1.5));
           }
@@ -768,7 +844,7 @@ class CombatEngine {
                 p,
               );
               spider.tiers = {};
-              this.units.push(spider);
+              this.addUnit(spider);
               this.emit("spawn", { unit: spider });
             }
           }
@@ -799,7 +875,10 @@ class CombatEngine {
         targets.forEach((o) => hit(o));
         this.emit("beam", { unit: u, target: t });
         this.schedule(0.5, () => {
-          if (u.alive) targets.forEach((o) => hit(o, d, "true"));
+          if (u.alive) {
+            this.fx(u, "impact", { target: t });
+            targets.forEach((o) => hit(o, d, "true"));
+          }
         });
         break;
       }
@@ -867,6 +946,7 @@ class CombatEngine {
       case "TwistedFate": {
         hit(t, [150, 250, 400][u.star - 1] * u.ap);
         const card = Math.floor(this.rng() * 3);
+        cue.card = card;
         if (card === 0) this.effect(t, "stun", 2);
         else if (card === 1) this.aoe(u, t, [150, 250, 400][u.star - 1] * u.ap);
         else
@@ -938,11 +1018,13 @@ class CombatEngine {
         break;
       case "Morgana": {
         const tether = this.near(u, enemy, 2);
+        cue.targets = tether;
         tether.forEach((o) => hit(o));
         this.schedule(3, () => {
           if (u.alive)
             tether
               .filter((o) => o.alive && Hex.distance(o, u) <= 2)
+              .map((o) => (this.fx(u, "impact", { target: o }), o))
               .forEach((o) => {
                 hit(o);
                 this.effect(o, "stun", v(1));
@@ -967,7 +1049,11 @@ class CombatEngine {
         } else hit(t);
         break;
       case "Gangplank":
-        this.aoe(u, this.densest(u), d, 2);
+        {
+          const c = this.densest(u);
+          cue.center = c && { x: c.x, y: c.y };
+          this.aoe(u, c, d, 2);
+        }
         break;
       case "Shyvana":
         if (this.transform(u)) {
@@ -978,13 +1064,18 @@ class CombatEngine {
         break;
       case "Sejuani": {
         const center = { x: t.x, y: t.y };
+        cue.center = center;
         this.schedule(1, () => {
-          if (u.alive) this.aoe(u, center, d, 2, v(1));
+          if (u.alive) {
+            this.fx(u, "impact", { center });
+            this.aoe(u, center, d, 2, v(1));
+          }
         });
         break;
       }
       case "Leona": {
         const center = this.densest(u);
+        cue.center = center && { x: center.x, y: center.y };
         this.aoe(u, center, d);
         this.effect(center, "stun", v(1));
         break;
@@ -993,7 +1084,11 @@ class CombatEngine {
         this.damageTo(u, t, d, "magic", { crit: true });
         break;
       case "Chogath":
-        this.aoe(u, this.densest(u, 2), d, 2, v(1));
+        {
+          const c = this.densest(u, 2);
+          cue.center = c && { x: c.x, y: c.y };
+          this.aoe(u, c, d, 2, v(1));
+        }
         break;
       case "AurelionSol":
         this.line(u, far, 1).forEach((o) => hit(o));
@@ -1012,7 +1107,7 @@ class CombatEngine {
                   (a, b) => Hex.distance(a, last) - Hex.distance(b, last),
                 )[0] || list[0];
             if (next) {
-              this.emit("bolt", { unit: last, target: next });
+              this.emit("bolt", { unit: last, target: next, source: u });
               hit(next);
               last = next;
             }
@@ -1054,14 +1149,18 @@ class CombatEngine {
       case "Karthus":
         this.effect(u, "channel", 3);
         this.schedule(3, () => {
-          if (u.alive && !this.has(u, "stun"))
-            enemy.slice(0, v()).forEach((o) => hit(o, v(1) * u.ap));
+          if (u.alive && !this.has(u, "stun")) {
+            const victims = enemy.filter((o) => o.alive).slice(0, v());
+            this.fx(u, "impact", { targets: victims });
+            victims.forEach((o) => hit(o, v(1) * u.ap));
+          }
         });
         break;
       case "Anivia": {
         const center = enemy.sort(
           (a, b) => b.as * (1 + b.asBonus) - a.as * (1 + a.asBonus),
         )[0];
+        cue.center = center && { x: center.x, y: center.y };
         channel(6, 12, () => {
           this.aoe(u, center, d / 12, 2);
           this.near(center, this.enemies(u), 2).forEach((o) =>
@@ -1087,7 +1186,10 @@ class CombatEngine {
           this.heal(u, targets.length * v(1) * u.ap);
         });
         this.schedule(6, () => {
-          if (u.alive) this.aoe(u, u, v(2) * u.ap, 2);
+          if (u.alive) {
+            this.fx(u, "impact", {});
+            this.aoe(u, u, v(2) * u.ap, 2);
+          }
         });
         break;
       case "MissFortune":
@@ -1100,6 +1202,7 @@ class CombatEngine {
         this.effect(u, "untargetable", 1);
         this.schedule(1, () => {
           if (!u.alive) return;
+          this.fx(u, "impact", { center: { x: far.x, y: far.y } });
           this.line(u, far, 1).forEach((o) => {
             hit(o, o.maxHp * v(1) * u.ap);
             this.effect(o, "burn", 10, (o.maxHp * v(2)) / 10, u);
@@ -1115,10 +1218,22 @@ class CombatEngine {
         this.effect(u, "haste", 3, v(1));
         break;
     }
+    this.fx(u, "cast", { target: t, far, from: cue.from, ...cue });
+    if (u.anomaly === "overflow") u.mana = Math.min(u.manaMax, u.mana + 40);
+    if (u.anomaly === "echo" && !u.echoing)
+      this.schedule(0.6, () => {
+        if (!u.alive || this.has(u, "stun")) return;
+        const mana = u.mana;
+        u.echoing = true;
+        this.cast(u);
+        u.echoing = false;
+        u.mana = mana;
+      });
   }
   step(dt = 1 / 30) {
     if (this.done) return;
     this.time += dt;
+    this.aliveCache = null;
     const due = this.pending.filter((t) => t.at <= this.time);
     this.pending = this.pending.filter((t) => t.at > this.time);
     due.forEach((t) => t.fn());

@@ -271,11 +271,9 @@ kbd {
   top: 444px;
   transform: rotate(-14deg);
 }
+/* Opacity-only keyframes stay on the compositor (no per-frame repaint). */
 @keyframes portalGlow {
   50% {
-    box-shadow:
-      0 0 24px #5deaff88,
-      inset 0 0 20px #61deff60;
     opacity: 0.65;
   }
 }
@@ -991,7 +989,7 @@ kbd {
 }
 @keyframes attackNudge {
   50% {
-    margin-top: -7px;
+    translate: 0 -7px;
   }
 }
 @keyframes castFlash {
