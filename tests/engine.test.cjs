@@ -247,3 +247,18 @@ test('little legend moves gradually, picks up nearby loot once and clamps to are
  if(G.mascot.x!==145||G.mascot.y!==590)throw Error('arena boundary');
  }`);
 });
+
+test('item effects: burn does not feed mana, flail stacks, justice and gargoyle apply', () => {
+ run(`{
+ const burnt=new CombatEngine([{heroId:'Garen',star:1,items:[],x:0,y:7}],[{heroId:'Brand',star:1,items:[],x:6,y:0}],{visual:false});
+ const [src,foe]=burnt.units;foe.mana=0;burnt.effect(foe,'burn',5,foe.maxHp*0.01,src);
+ for(let i=0;i<30;i++)burnt.step(1/30);
+ if(foe.mana>5||foe.hp>=foe.maxHp)throw Error('burn tick mana '+foe.mana);
+ const e=new CombatEngine([{heroId:'Garen',star:1,items:['2042','2039'],x:3,y:5}],[{heroId:'Garen',star:1,items:['2028'],x:3,y:4}],{visual:false,rng:()=>0});
+ const [a,b]=e.units;
+ if(Math.abs(a.vamp-0.12)>1e-9||Math.abs(a.ap-1.3)>1e-9)throw Error('justice');
+ for(let i=0;i<3;i++)e.damageTo(a,b,1,'phys',{attack:true});
+ if(Math.abs(e.value(a,'flail')-0.15)>1e-9)throw Error('flail '+e.value(a,'flail'));
+ a.target=b;e.step(1/30);if(b.gargoyle!==1)throw Error('gargoyle');
+ }`);
+});
