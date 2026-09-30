@@ -139,6 +139,13 @@ class CombatEngine {
     if (u.items.includes("2029")) u.maxHp *= 1.08;
     if (u.items.includes("2041")) this.effect(u, "ccImmune", 18);
     if (u.items.includes("2018")) this.shield(u, u.maxHp * 0.25, 8);
+    if (u.items.includes("2032")) {
+      u.armor += 25;
+      u.mr += 25;
+    }
+    // A second skill-crit source grants 10% crit damage instead.
+    const critSources = u.items.filter((i) => i === "2001" || i === "2038").length;
+    if (critSources > 1) u.critD += 0.1 * (critSources - 1);
     if (typeof ANOMALIES !== "undefined") ANOMALIES[u.anomaly]?.apply?.(u);
     if (u.items.includes("2023")) u.mana += 20;
     if (u.items.includes("2024")) {
@@ -151,7 +158,21 @@ class CombatEngine {
       }
     }
     u.hp = u.maxHp;
+    if (u.items.includes("2039")) this.justice(u);
     return u;
+  }
+  // Hand of Justice: doubled AD/AP above 50% health, doubled omnivamp below.
+  justice(u) {
+    const high = u.hp > u.maxHp * 0.5;
+    if (u.justice?.high === high) return;
+    const next = high
+        ? { high, atk: u.baseAtk * 0.3, ap: 0.3, vamp: 0.12 }
+        : { high, atk: u.baseAtk * 0.15, ap: 0.15, vamp: 0.24 },
+      prev = u.justice || { atk: 0, ap: 0, vamp: 0 };
+    u.atk += next.atk - prev.atk;
+    u.ap += next.ap - prev.ap;
+    u.vamp += next.vamp - prev.vamp;
+    u.justice = next;
   }
   // Living-unit lists are cached until a unit dies or joins. Callers get
   // copies so in-place sorting can never disturb the shared cache.
@@ -412,6 +433,7 @@ class CombatEngine {
     let n = amount,
       crit = false;
     if (
+      !options.dot &&
       (options.attack ||
         options.crit ||
         (src.spellCrit && !options.secondary) ||
@@ -423,15 +445,16 @@ class CombatEngine {
       crit = true;
     }
     if (type !== "true") {
+      const bonus = (t.gargoyle || 0) * 10;
       const resist =
         type === "phys"
-          ? t.armor *
+          ? (t.armor + bonus) *
             (src.heroId === "Draven" ? 0.5 : 1) *
             (this.has(t, "shredArmor") ? 0.7 : 1)
-          : t.mr * (this.has(t, "shredMr") ? 0.7 : 1);
+          : (t.mr + bonus) * (this.has(t, "shredMr") ? 0.7 : 1);
       n *= resist >= 0 ? 100 / (100 + resist) : 2 - 100 / (100 - resist);
     }
-    n *= 1 + src.amp;
+    n *= 1 + src.amp + this.value(src, "flail");
     if (src.spellAmp && !options.attack) n *= 1 + src.spellAmp;
     if (src.anomaly === "executioner" && t.hp < t.maxHp * 0.4) n *= 1.5;
     if (src.items.includes("2046") && t.range === 1) n *= 1.15;
@@ -465,7 +488,13 @@ class CombatEngine {
       crit,
       kind: type,
     });
-    t.mana = Math.min(t.manaMax, t.mana + Math.min(30, 6 + before * 0.06));
+    // Damage-over-time ticks every frame, so it must not feed the victim mana.
+    if (!options.dot)
+      t.mana = Math.min(
+        t.manaMax,
+        t.mana +
+          Math.min(30, 6 + before * 0.06) * (t.items.includes("2024") ? 1.15 : 1),
+      );
     if (src.vamp) this.heal(src, dealt * src.vamp);
     if (src.items.includes("2003")) {
       const friend = this.allies(src).sort(
@@ -477,14 +506,9 @@ class CombatEngine {
       if (src.items.includes("2011")) this.effect(t, "shredMr", 5);
       if (src.items.includes("2037")) this.effect(t, "shredArmor", 3);
       if (src.items.includes("2009") || src.items.includes("2020")) {
-        this.effect(
-          t,
-          "burn",
-          src.items.includes("2020") ? 10 : 5,
-          t.maxHp * 0.01,
-          src,
-        );
-        this.effect(t, "wound", 10, 0.33);
+        const duration = src.items.includes("2020") ? 10 : 5;
+        this.effect(t, "burn", duration, t.maxHp * 0.01, src);
+        this.effect(t, "wound", duration, 0.33);
       }
       if (src.traits.includes("r10") && src.tiers?.r10 && type !== "true") {
         this.damageTo(
@@ -507,7 +531,7 @@ class CombatEngine {
       this.heal(t, t.maxHp * (t.tiers.r3 === 1 ? 0.05 : 0.08));
       t.dragonCd = this.time + 2;
     }
-    if (t.items.includes("2012")) this.titan(t);
+    if (t.items.includes("2012") && !options.dot) this.titan(t);
     if (
       t.hp > 0 &&
       t.hp < t.maxHp * 0.6 &&
@@ -534,13 +558,16 @@ class CombatEngine {
       if (t.items.includes("2023")) t.mana += 15;
     }
     if (t.hp <= 0) this.kill(t, src);
-    if (crit && src.items.includes("2042"))
-      this.effect(
-        src,
-        "flail",
-        5,
-        Math.min(4, (src.stacks.flail = (src.stacks.flail || 0) + 1)) * 0.05,
-      );
+    if (crit && src.items.includes("2042")) {
+      // Stacks restart once the 5-second buff has lapsed.
+      src.stacks.flail = this.has(src, "flail")
+        ? Math.min(4, (src.stacks.flail || 0) + 1)
+        : 1;
+      src.effects = src.effects.filter((e) => e.type !== "flail");
+      this.effect(src, "flail", 5, src.stacks.flail * 0.05);
+    }
+    if (crit && options.attack && !options.secondary && src.items.includes("2014"))
+      src.mana = Math.min(src.manaMax, src.mana + 4);
     return dealt;
   }
   kill(t, src) {
@@ -1241,7 +1268,10 @@ class CombatEngine {
       for (const e of [...u.effects]) {
         e.t -= dt;
         if (e.t > 0 && e.type === "burn" && e.source)
-          this.damageTo(e.source, u, e.value * dt, "true", { secondary: true });
+          this.damageTo(e.source, u, e.value * dt, "true", {
+            secondary: true,
+            dot: true,
+          });
       }
       u.effects = u.effects.filter(
         (e) => e.t > 0 && (e.type !== "shield" || e.value > 0),
@@ -1251,7 +1281,18 @@ class CombatEngine {
         u.tiers?.r13 &&
         (u.traits.includes("r13") || u.tiers.r13 >= 2)
       );
-      u.mana = Math.min(u.manaMax, u.mana + u.regen * dt);
+      u.mana = Math.min(
+        u.manaMax,
+        u.mana + u.regen * dt * (u.items.includes("2024") ? 1.15 : 1),
+      );
+      if (u.items.includes("2039")) this.justice(u);
+      if (u.items.includes("2028"))
+        u.gargoyle = this.alive(1 - u.side).filter((o) => o.target === u).length;
+      if (u.items.includes("2032") && this.time >= 15 && !u.stacks.shroud) {
+        u.stacks.shroud = 1;
+        u.armor -= 25;
+        u.mr -= 25;
+      }
       if (u.items.includes("2010")) u.asBonus += 0.07 * dt;
       if (u.items.includes("2041")) u.asBonus += 0.03 * dt;
       if (u.items.includes("2025")) this.heal(u, (u.maxHp - u.hp) * 0.025 * dt);

@@ -896,6 +896,22 @@ const Game = {
         };
       }
     }
+    // Crowns each roll 10% for 1 gold under their own condition.
+    const crownGold = engine.units
+      .filter((u) => u.side === 0 && u.heroId)
+      .flatMap((u) =>
+        u.items.filter(
+          (i) =>
+            (i === "2036" && win) ||
+            (i === "2047" && !u.alive) ||
+            (i === "2048" && res.time >= 10),
+        ),
+      )
+      .filter(() => Math.random() < 0.1).length;
+    if (crownGold) {
+      const previous = G.loot || { gold: 0, items: [] };
+      G.loot = { ...previous, gold: previous.gold + crownGold };
+    }
     G.history.push({
       round: roundName(G.round),
       win,
